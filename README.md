@@ -1,0 +1,2 @@
+# mgjson
+JSON manipulation class
