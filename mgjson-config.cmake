@@ -1,4 +1,4 @@
-find_package(msgpack)
+find_package(msgpack QUIET)
 if(msgpack_FOUND)
     set(MSGPACK_HPP_EXISTS 1)
 else()
