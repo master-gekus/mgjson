@@ -21,23 +21,22 @@ if(MGJSON_USE_QTEST)
     add_executable(${PROJECT_NAME} mgjson_qtest.cpp)
     target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Test)
 else()
-    ## Loading Google Test in-flight
     include(ExternalProject)
 
     ExternalProject_Add(googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
         CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=$<CONFIG>
         -DBUILD_GTEST=ON
+        -Dgtest_force_shared_crt=ON
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gtest"
         INSTALL_COMMAND ""
         )
 
-    # Specify include dir
     ExternalProject_Get_Property(googletest SOURCE_DIR)
     set(GTEST_INCLUDE_DIRS ${SOURCE_DIR}/googletest/include)
     include_directories(${GTEST_INCLUDE_DIRS})
 
-    # Specify MainTest's link libraries
     ExternalProject_Get_Property(googletest BINARY_DIR)
     set(GTEST_LIBS_DIR ${BINARY_DIR}/googlemock/gtest)
 
@@ -47,21 +46,10 @@ else()
     add_dependencies(${PROJECT_NAME} googletest)
     add_definitions(-DGTEST_INVOKED)
 
-    if(NOT WIN32 OR MINGW)
-        target_link_libraries(${PROJECT_NAME}
-            ${GTEST_LIBS_DIR}/libgtest.a
-            ${GTEST_LIBS_DIR}/libgtest_main.a
-        )
-    else()
-        target_link_libraries(${PROJECT_TEST_NAME}
-            debug ${GTEST_LIBS_DIR}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${CMAKE_FIND_LIBRARY_SUFFIXES}
-            optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${CMAKE_FIND_LIBRARY_SUFFIXES}
-        )
-        target_link_libraries(${PROJECT_TEST_NAME}
-            debug ${GTEST_LIBS_DIR}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
-            optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
-        )
-    endif()
+    target_link_libraries(${PROJECT_NAME}
+        ${GTEST_LIBS_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}
+        ${GTEST_LIBS_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
     if(UNIX)
         target_link_libraries(${PROJECT_NAME} pthread)
     endif()
