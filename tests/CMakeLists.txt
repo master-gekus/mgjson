@@ -62,6 +62,9 @@ else()
             optimized ${GTEST_LIBS_DIR}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${CMAKE_FIND_LIBRARY_SUFFIXES}
         )
     endif()
+    if(UNIX)
+        target_link_libraries(${PROJECT_NAME} pthread)
+    endif()
 endif()
 
 add_test(${PROJECT_NAME} ${PROJECT_NAME})
