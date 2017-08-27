@@ -22,6 +22,14 @@ class _mgjson_shared_data_ptr
 {
 public:
     inline _mgjson_shared_data_ptr() : d(nullptr) {}
+    inline _mgjson_shared_data_ptr(const _mgjson_shared_data_ptr<T> &o) :
+        d(o.d)
+    {
+        if(d) {
+            ++d->ref;
+        }
+    }
+
     inline explicit _mgjson_shared_data_ptr(T *data) :
         d(data)
     {
@@ -40,6 +48,8 @@ public:
 public:
     inline const T &operator*() const { return *d; }
     inline const T *operator->() const { return d; }
+    inline T &operator*() { detach(); return *d; }
+    inline T *operator->() { detach(); return d; }
 
     inline _mgjson_shared_data_ptr<T> & operator=(const _mgjson_shared_data_ptr<T> &o)
     {
@@ -54,6 +64,19 @@ public:
             }
         }
         return *this;
+    }
+
+private:
+    inline void detach()
+    {
+        if (d && (d->ref != 1)) {
+            T *x = new T(*d);
+            ++x->ref;
+            if(0 == (--d->ref)) {
+                delete d;
+            }
+            d = x;
+        }
     }
 
 private:

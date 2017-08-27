@@ -17,7 +17,9 @@ public:
         copy_constuctor_called_(true),
         value_(other.value_)
     {
+        counter_++;
     }
+
     ~TestSharedDataData()
     {
         counter_--;
@@ -71,7 +73,11 @@ public:
         return d->value_;
     }
 
-    void setValue(int new_value);
+    void setValue(int new_value)
+    {
+        d->value_ = new_value;
+    }
+
 
 private:
     _mgjson_shared_data_ptr<TestSharedDataData> d;
@@ -91,7 +97,6 @@ TEST_F(SharedDataTest, CreateAndDestroy)
     TestSharedData a;
     EXPECT_EQ(a.value(), 0);
     EXPECT_EQ(a.is_copied(), false);
-    EXPECT_EQ(a.is_same(a), true);
 }
 
 TEST_F(SharedDataTest, Copy)
@@ -136,4 +141,59 @@ TEST_F(SharedDataTest, AssignmentAndCopyMixed)
     EXPECT_EQ(c.is_copied(), false);
     EXPECT_EQ(a.is_same(b), true);
     EXPECT_EQ(a.is_same(c), true);
+}
+
+TEST_F(SharedDataTest, NoCopyChange)
+{
+    TestSharedData a;
+    EXPECT_EQ(a.value(), 0);
+    a.setValue(1);
+    EXPECT_EQ(a.value(), 1);
+    a.setValue(2);
+    EXPECT_EQ(a.value(), 2);
+
+    EXPECT_EQ(a.is_copied(), false);
+}
+
+TEST_F(SharedDataTest, SimpleCopyOnWrite)
+{
+    TestSharedData a;
+    EXPECT_EQ(a.value(), 0);
+    TestSharedData b(a);
+    EXPECT_EQ(b.value(), 0);
+    EXPECT_EQ(a.is_copied(), false);
+    EXPECT_EQ(b.is_copied(), false);
+    EXPECT_EQ(a.is_same(b), true);
+
+    b.setValue(1);
+    EXPECT_EQ(b.value(), 1);
+    EXPECT_EQ(a.is_copied(), false);
+    EXPECT_EQ(b.is_copied(), true);
+}
+
+TEST_F(SharedDataTest, TripleCopyOnWrite)
+{
+    TestSharedData a;
+    EXPECT_EQ(a.value(), 0);
+    TestSharedData b(a);
+    EXPECT_EQ(b.value(), 0);
+    EXPECT_EQ(a.is_copied(), false);
+    EXPECT_EQ(b.is_copied(), false);
+    EXPECT_EQ(a.is_same(b), true);
+
+    b.setValue(1);
+    EXPECT_EQ(b.value(), 1);
+    EXPECT_EQ(a.is_copied(), false);
+    EXPECT_EQ(b.is_copied(), true);
+
+    TestSharedData c;
+    c = a;
+    EXPECT_EQ(c.value(), 0);
+    EXPECT_EQ(c.is_copied(), false);
+    EXPECT_EQ(c.is_same(a), true);
+    EXPECT_EQ(c.is_same(b),false);
+
+    c.setValue(2);
+    EXPECT_EQ(c.value(), 2);
+    EXPECT_EQ(c.is_copied(), true);
 }
