@@ -77,14 +77,19 @@ private:
     _mgjson_shared_data_ptr<TestSharedDataData> d;
 };
 
-TEST(SharedData, CreateAndDestroy)
+class SharedDataTest : public ::testing::Test
 {
+protected:
+    void TearDown()
     {
-        TestSharedData a;
-        EXPECT_EQ(a.value(), 0);
-        EXPECT_EQ(a.is_copied(), false);
-        EXPECT_EQ(a.is_same(a), true);
+        EXPECT_EQ(TestSharedDataData::counter_, 0);
     }
+};
 
-    EXPECT_EQ(TestSharedDataData::counter_, 0);
+TEST_F(SharedDataTest, CreateAndDestroy)
+{
+    TestSharedData a;
+    EXPECT_EQ(a.value(), 0);
+    EXPECT_EQ(a.is_copied(), false);
+    EXPECT_EQ(a.is_same(a), true);
 }
