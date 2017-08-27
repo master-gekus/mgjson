@@ -32,7 +32,9 @@ public:
 
     inline ~_mgjson_shared_data_ptr()
     {
-        if (d && (0 == (d->ref--))) delete d;
+        if (d && (0 == (--d->ref))) {
+            delete d;
+        }
     }
 
 public:

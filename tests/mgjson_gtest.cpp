@@ -10,6 +10,7 @@ public:
         copy_constuctor_called_(false),
         value_(0)
     {
+        counter_++;
     }
 
     TestSharedDataData(const TestSharedDataData& other):
@@ -17,11 +18,18 @@ public:
         value_(other.value_)
     {
     }
+    ~TestSharedDataData()
+    {
+        counter_--;
+    }
 
 public:
     bool copy_constuctor_called_;
     int value_;
+    static std::atomic<int> counter_;
 };
+
+std::atomic<int> TestSharedDataData::counter_(0);
 
 class TestSharedData
 {
@@ -71,8 +79,12 @@ private:
 
 TEST(SharedData, CreateAndDestroy)
 {
-    TestSharedData a;
-    EXPECT_EQ(a.value(), 0);
-    EXPECT_EQ(a.is_copied(), false);
-    EXPECT_EQ(a.is_same(a), true);
+    {
+        TestSharedData a;
+        EXPECT_EQ(a.value(), 0);
+        EXPECT_EQ(a.is_copied(), false);
+        EXPECT_EQ(a.is_same(a), true);
+    }
+
+    EXPECT_EQ(TestSharedDataData::counter_, 0);
 }
