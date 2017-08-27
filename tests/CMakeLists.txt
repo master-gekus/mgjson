@@ -56,3 +56,4 @@ else()
 endif()
 
 add_test(${PROJECT_NAME} ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME} mgjson)

@@ -1,0 +1,17 @@
+find_package(msgpack)
+if(msgpack_FOUND)
+    set(MSGPACK_HPP_EXISTS 1)
+else()
+    include(CheckIncludeFileCXX)
+    CHECK_INCLUDE_FILE_CXX(msgpack.hpp MSGPACK_HPP_EXISTS)
+endif()
+if (MSGPACK_HPP_EXISTS)
+    add_definitions(-DMGJSON_USE_MSGPACK)
+endif()
+
+if(NOT TARGET mgjson)
+    add_library(mgjson INTERFACE)
+    set_target_properties(mgjson PROPERTIES INTERFACE_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/mgjson.cpp)
+    set_target_properties(mgjson PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include)
+endif()
+

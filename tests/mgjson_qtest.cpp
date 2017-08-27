@@ -1,6 +1,8 @@
 #include <QString>
 #include <QtTest>
 
+#include <QSharedData>
+
 class TestestTest : public QObject
 {
     Q_OBJECT
