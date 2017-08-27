@@ -93,3 +93,29 @@ TEST_F(SharedDataTest, CreateAndDestroy)
     EXPECT_EQ(a.is_copied(), false);
     EXPECT_EQ(a.is_same(a), true);
 }
+
+TEST_F(SharedDataTest, Copy)
+{
+    TestSharedData a;
+    EXPECT_EQ(a.value(), 0);
+    TestSharedData b(a);
+    EXPECT_EQ(b.value(), 0);
+
+    EXPECT_EQ(a.is_copied(), false);
+    EXPECT_EQ(b.is_copied(), false);
+    EXPECT_EQ(a.is_same(b), true);
+}
+
+TEST_F(SharedDataTest, Assignment)
+{
+    TestSharedData a;
+    EXPECT_EQ(a.value(), 0);
+    TestSharedData b;
+    EXPECT_EQ(b.value(), 0);
+    b = a;
+    EXPECT_EQ(b.value(), 0);
+
+    EXPECT_EQ(a.is_copied(), false);
+    EXPECT_EQ(b.is_copied(), false);
+    EXPECT_EQ(a.is_same(b), true);
+}

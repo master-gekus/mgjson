@@ -41,6 +41,21 @@ public:
     inline const T &operator*() const { return *d; }
     inline const T *operator->() const { return d; }
 
+    inline _mgjson_shared_data_ptr<T> & operator=(const _mgjson_shared_data_ptr<T> &o)
+    {
+        if(o.d != d) {
+            if(o.d) {
+                ++o.d->ref;
+            }
+            T *old = d;
+            d = o.d;
+            if (old && (0 == (--old->ref))) {
+                delete old;
+            }
+        }
+        return *this;
+    }
+
 private:
     T *d;
 };
