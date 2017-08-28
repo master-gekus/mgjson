@@ -1,3 +1,5 @@
+#include <ctime>
+
 #include <QtTest>
 
 #include "GJson.h"
