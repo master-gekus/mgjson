@@ -12,6 +12,7 @@
 #   define _mgjson_declare_flags(Flags, Enum) Q_DECLARE_FLAGS(Flags, Enum)
 #   define _mgjson_declare_operators_for_flags(Flags) Q_DECLARE_OPERATORS_FOR_FLAGS(Flags)
 #else   // QT_CORE_LIB
+#   include <string>
 #   include "mgjson_shared_data.h"
 #   define _mgjson_declare_flags(Flags, Enum) typedef unsigned int Flags;
 #   define _mgjson_declare_operators_for_flags(Flags)
@@ -123,6 +124,30 @@ public:
     inline bool is_compound() const { json_type t = type(); return (Object == t) || (Array == t); }
     inline bool is_set() const { json_type t = type(); return (Null != t) && (Undefined != t); }
 
+public:
+    bool to_bool() const;
+    int to_int() const;
+    unsigned int to_uint() const;
+    long long to_longlong() const;
+    unsigned long long to_ulonglong() const;
+    float to_float() const;
+    double to_double() const;
+    const char* to_str() const;
+    std::string to_string() const;
+
+    inline operator bool () const { return to_bool(); }
+    inline operator int () const { return to_int(); }
+    inline operator unsigned int () const { return to_uint(); }
+    inline operator long long () const { return to_longlong(); }
+    inline operator unsigned long long () const { return to_ulonglong(); }
+    inline operator float () const { return to_float(); }
+    inline operator double () const { return to_double(); }
+    inline operator const char* () const { return to_str(); }
+    inline operator std::string () const { return to_string(); }
+
+    template<typename T>
+    inline T to() const { return this->operator T();}
+
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
 };
@@ -169,6 +194,25 @@ public:
     inline bool isCompound() const { return is_compound(); }
     inline bool isUndefined() const { return is_undefined(); }
     inline bool isSet() const { return is_set(); }
+
+public:
+    inline bool toBool() const { return to_bool(); }
+    inline int toInt() const { return to_int(); }
+    inline unsigned int toUInt() const { return to_uint(); }
+    inline long long toLongLong() const { return to_longlong(); }
+    inline unsigned long long toULongLong() const { return to_ulonglong(); }
+    inline float toFloat() const { return to_float(); }
+    inline double toDouble() const { return to_double(); }
+    inline const char* toStr() const { return to_str(); }
+    inline std::string toStdString() const { return to_string(); }
+
+    QString toString() const;
+    QByteArray toByteArray() const;
+    QVariant toVariant() const;
+
+    inline operator QString () const { return toString(); }
+    inline operator QByteArray () const { return toByteArray(); }
+    inline operator QVariant () const { return toVariant(); }
 };
 
 #endif  // QT_CORE_LIB
