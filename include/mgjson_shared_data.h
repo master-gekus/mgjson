@@ -46,10 +46,18 @@ public:
     }
 
 public:
-    inline const T &operator*() const { return *d; }
-    inline const T *operator->() const { return d; }
-    inline T &operator*() { detach(); return *d; }
-    inline T *operator->() { detach(); return d; }
+    inline const T& operator*() const { return *d; }
+    inline const T* operator->() const { return d; }
+    inline T& operator*() { detach(); return *d; }
+    inline T* operator->() { detach(); return d; }
+    inline operator T* () { detach(); return d; }
+    inline operator const T* () const { return d; }
+    inline T* data() { detach(); return d; }
+    inline const T* data() const { return d; }
+    inline const T* constData() const { return d; }
+
+    inline bool operator==(const _mgjson_shared_data_ptr<T> &other) const { return d == other.d; }
+    inline bool operator!=(const _mgjson_shared_data_ptr<T> &other) const { return d != other.d; }
 
     inline _mgjson_shared_data_ptr<T> & operator=(const _mgjson_shared_data_ptr<T> &o)
     {
