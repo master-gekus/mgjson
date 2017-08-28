@@ -14,3 +14,4 @@ DEFINES += SRCDIR=\\\"$$PWD/\\\"
 SOURCES += \
     mgjson_qtest.cpp
 
+include(../mgjson.pri)
