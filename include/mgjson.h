@@ -146,7 +146,7 @@ public:
     inline operator std::string () const { return to_string(); }
 
     template<typename T>
-    inline T to() const { return this->operator T();}
+    inline T to() const { return (T) (*this); }
 
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
