@@ -215,6 +215,18 @@ public:
     inline operator QVariant () const { return toVariant(); }
 };
 
+template<>
+inline QString mgjson::to() const
+{
+  return static_cast<const GJson*>(this)->toString();
+}
+
+template<>
+inline QByteArray mgjson::to() const
+{
+  return static_cast<const GJson*>(this)->toByteArray();
+}
+
 #endif  // QT_CORE_LIB
 
 #endif // _MGJSON_H_INCLUDED_
