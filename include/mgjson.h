@@ -4,6 +4,7 @@
 
 #ifdef QT_CORE_LIB
 #   include <QString>
+#   include <QVariant>
 #   include <QSharedDataPointer>
     template <class T>
     using _mgjson_shared_data_ptr = QSharedDataPointer<T>;
@@ -52,7 +53,7 @@ public:
         }
     };
 
-    enum type {
+    enum json_type {
         Null        = 0x0,
         Bool        = 0x1,
         Integer     = 0x2,
@@ -90,6 +91,25 @@ public:
     _mgjson_declare_flags(json_format, json_format_flags)
 
 private:
+    mgjson(mgjson_private *data);
+
+public:
+    mgjson(json_type type = Null);
+    mgjson(const mgjson &other);
+    mgjson(bool value);
+    mgjson(int value);
+    mgjson(unsigned int value);
+    mgjson(long long value);
+    mgjson(unsigned long long value);
+    mgjson(float value);
+    mgjson(double value);
+    mgjson(const char* value);
+    mgjson &operator=(const mgjson& other);
+
+public:
+    ~mgjson();
+
+private:
     _mgjson_shared_data_ptr<mgjson_private> d;
 };
 
@@ -113,11 +133,15 @@ struct GJsonParseError : public mgjson::parse_result
 class GJson : public mgjson
 {
 public:
-    typedef type Type;
+    typedef json_type Type;
     typedef json_format JsonFormat;
 
 public:
     using mgjson::mgjson;
+    inline GJson(Type type = Null) : mgjson(type) {}
+    GJson(const QString &value);
+    GJson(const QByteArray &value);
+    GJson(const QVariant &value);
 };
 
 #endif  // QT_CORE_LIB
