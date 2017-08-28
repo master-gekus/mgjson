@@ -13,6 +13,7 @@
 #   define _mgjson_declare_operators_for_flags(Flags) Q_DECLARE_OPERATORS_FOR_FLAGS(Flags)
 #else   // QT_CORE_LIB
 #   include <string>
+#   include <list>
 #   include "mgjson_shared_data.h"
 #   define _mgjson_declare_flags(Flags, Enum) typedef unsigned int Flags;
 #   define _mgjson_declare_operators_for_flags(Flags)
@@ -148,6 +149,24 @@ public:
     template<typename T>
     inline T to() const { return (T) (*this); }
 
+public:
+    size_t count() const;
+    void resize(size_t new_size);
+
+    mgjson at(size_t index) const;
+    mgjson& at(size_t index);
+    inline mgjson operator [](size_t index) const { return at(index); }
+    inline mgjson& operator [](size_t index) { return at(index); }
+
+    mgjson at(const char* key) const;
+    mgjson& at(const char* key);
+    inline mgjson at(const std::string& key) const { return at(key.c_str()); }
+    inline mgjson& at(const std::string& key) { return at(key.c_str()); }
+    inline mgjson operator [](const char* key) const { return at(key); }
+    inline mgjson& operator [](const char* key) { return at(key); }
+
+    std::list<std::string> keys() const;
+
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
 };
@@ -213,6 +232,27 @@ public:
     inline operator QString () const { return toString(); }
     inline operator QByteArray () const { return toByteArray(); }
     inline operator QVariant () const { return toVariant(); }
+
+public:
+    inline int count() const { return static_cast<int>(mgjson::count()); }
+    void resize(int new_size) { mgjson::resize(static_cast<size_t>(new_size)); }
+
+    inline mgjson at(int index) const { return mgjson::at(static_cast<int>(index)); }
+    inline mgjson& at(int index) { return mgjson::at(static_cast<int>(index)); }
+    inline mgjson operator [](int index) const { return at(index); }
+    inline mgjson& operator [](int index) { return at(index); }
+
+    inline mgjson at(const QByteArray& key) const { return mgjson::at(key.constData()); }
+    inline mgjson& at(const QByteArray& key) { return mgjson::at(key.constData()); }
+    inline mgjson operator [](const QByteArray& key) const { return mgjson::at(key.constData()); }
+    inline mgjson& operator [](const QByteArray& key) { return mgjson::at(key.constData()); }
+
+    inline mgjson at(const QString& key) const { return mgjson::at(key.toUtf8().constData()); }
+    inline mgjson& at(const QString& key) { return mgjson::at(key.toUtf8().constData()); }
+    inline mgjson operator [](const QString& key) const { return mgjson::at(key.toUtf8().constData()); }
+    inline mgjson& operator [](const QString& key) { return mgjson::at(key.toUtf8().constData()); }
+
+    QList<QByteArray> keys() const;
 };
 
 template<>
