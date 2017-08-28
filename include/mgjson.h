@@ -167,6 +167,18 @@ public:
 
     std::list<std::string> keys() const;
 
+public:
+    void append(const mgjson& value);
+    void prepend(const mgjson& value);
+
+    void remove(size_t index);
+    void remove(const char* key);
+    inline void remove(const std::string& key) { remove(key.c_str()); }
+
+    mgjson take(size_t index);
+    mgjson take(const char* key);
+    inline mgjson take(const std::string& key) { return take(key.c_str()); }
+
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
 };
@@ -235,7 +247,7 @@ public:
 
 public:
     inline int count() const { return static_cast<int>(mgjson::count()); }
-    void resize(int new_size) { mgjson::resize(static_cast<size_t>(new_size)); }
+    inline void resize(int new_size) { mgjson::resize(static_cast<size_t>(new_size)); }
 
     inline mgjson at(int index) const { return mgjson::at(static_cast<int>(index)); }
     inline mgjson& at(int index) { return mgjson::at(static_cast<int>(index)); }
@@ -253,6 +265,19 @@ public:
     inline mgjson& operator [](const QString& key) { return mgjson::at(key.toUtf8().constData()); }
 
     QList<QByteArray> keys() const;
+
+public:
+    inline void removeAt(int index) { mgjson::remove(static_cast<size_t>(index)); }
+    inline void removeAt(const char* key) { mgjson::remove(key); }
+    inline void removeAt(const std::string& key) { mgjson::remove(key.c_str()); }
+    inline void removeAt(const QByteArray& key) { mgjson::remove(key.constData()); }
+    inline void removeAt(const QString& key) { mgjson::remove(key.toUtf8().constData()); }
+
+    inline mgjson takeAt(int index) { return mgjson::take(static_cast<size_t>(index)); }
+    inline mgjson takeAt(const char* key) { return mgjson::take(key); }
+    inline mgjson takeAt(const std::string& key) { return mgjson::take(key.c_str()); }
+    inline mgjson takeAt(const QByteArray& key) { return mgjson::take(key.constData()); }
+    inline mgjson takeAt(const QString& key) { return mgjson::take(key.toUtf8().constData()); }
 };
 
 template<>
