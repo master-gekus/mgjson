@@ -1,4 +1,5 @@
 INCLUDEPATH *= $$PWD/include
+CONFIG *= c++11
 
 SOURCES *= \
   $$PWD/src/mgjson.cpp
