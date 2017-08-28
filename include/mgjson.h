@@ -109,6 +109,20 @@ public:
 public:
     ~mgjson();
 
+public:
+    json_type type() const;
+    inline bool is_null() const { return type() == Null; }
+    inline bool is_bool() const { return type() == Bool; }
+    inline bool is_integer() const { return type() == Integer; }
+    inline bool is_double() const { return type() == Double; }
+    inline bool is_string() const { return type() == String; }
+    inline bool is_array() const { return type() == Array; }
+    inline bool is_object() const { return type() == Object; }
+    inline bool is_undefined() const { return type() == Undefined; }
+    inline bool is_numeric() const { json_type t = type(); return (Double == t) || (Integer == t); }
+    inline bool is_compound() const { json_type t = type(); return (Object == t) || (Array == t); }
+    inline bool is_set() const { json_type t = type(); return (Null != t) && (Undefined != t); }
+
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
 };
@@ -142,6 +156,19 @@ public:
     GJson(const QString &value);
     GJson(const QByteArray &value);
     GJson(const QVariant &value);
+
+public:
+    inline bool isNull() const { return is_null(); }
+    inline bool isBool() const { return is_bool(); }
+    inline bool isInteger() const { return is_integer(); }
+    inline bool isDouble() const { return is_double(); }
+    inline bool isNumeric() const { return is_numeric(); }
+    inline bool isString() const { return is_string(); }
+    inline bool isArray() const { return is_array(); }
+    inline bool isObject() const { return is_object(); }
+    inline bool isCompound() const { return is_compound(); }
+    inline bool isUndefined() const { return is_undefined(); }
+    inline bool isSet() const { return is_set(); }
 };
 
 #endif  // QT_CORE_LIB
