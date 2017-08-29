@@ -40,7 +40,11 @@ else()
     ExternalProject_Get_Property(googletest BINARY_DIR)
     set(GTEST_LIBS_DIR ${BINARY_DIR}/googlemock/gtest)
 
-    add_executable(${PROJECT_NAME} mgjson_gtest.cpp)
+    add_executable(${PROJECT_NAME}
+        mgjson_gtest.cpp
+        mgjson_shared_data_gtest.cpp
+        )
+
     set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
     set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
     add_dependencies(${PROJECT_NAME} googletest)
