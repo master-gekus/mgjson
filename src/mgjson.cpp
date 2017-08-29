@@ -2,6 +2,7 @@
 #include <cstring>
 #include <map>
 #include <vector>
+#include <limits>
 
 #include "mgjson.h"
 
@@ -54,6 +55,24 @@ public:
       i_value_(0),
       d_value_(0.0),
       str_value_(mgjson::Null == type ? "null" : "")
+    {
+    }
+
+    mgjson_private(bool value) :
+      type_(mgjson::Bool),
+      b_value_(value),
+      i_value_(value ? 1 : 0),
+      d_value_(value ? 1.0 : 0.0),
+      str_value_(value ? "true" : "false")
+    {
+    }
+
+    mgjson_private(unsigned long long value) :
+      type_(mgjson::Integer),
+      b_value_(!!value),
+      i_value_(value),
+      d_value_(value),
+      str_value_(std::to_string(value))
     {
     }
 
@@ -111,6 +130,41 @@ mgjson &mgjson::operator=(const mgjson& other)
 
 mgjson::mgjson(json_type type) :
     d(new mgjson_private(type))
+{
+}
+
+mgjson::mgjson(bool value) :
+    d(new mgjson_private(value))
+{
+}
+
+mgjson::mgjson(int value) :
+    d(new mgjson_private(static_cast<unsigned long long>(value)))
+{
+}
+
+mgjson::mgjson(unsigned int value) :
+    d(new mgjson_private(static_cast<unsigned long long>(value)))
+{
+}
+
+mgjson::mgjson(long value) :
+    d(new mgjson_private(static_cast<unsigned long long>(value)))
+{
+}
+
+mgjson::mgjson(unsigned long value) :
+    d(new mgjson_private(static_cast<unsigned long long>(value)))
+{
+}
+
+mgjson::mgjson(long long value) :
+    d(new mgjson_private(static_cast<unsigned long long>(value)))
+{
+}
+
+mgjson::mgjson(unsigned long long value) :
+    d(new mgjson_private(value))
 {
 }
 

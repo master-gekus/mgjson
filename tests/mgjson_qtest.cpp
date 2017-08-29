@@ -1,4 +1,5 @@
 #include <ctime>
+#include <limits>
 
 #include <QtTest>
 
@@ -55,12 +56,6 @@ class GJsonTest : public QObject
 {
     Q_OBJECT
 
-public:
-    GJsonTest()
-    {
-        qsrand(time(0));
-    }
-
 private slots:
 
     // ConstructorFromType
@@ -93,6 +88,43 @@ private slots:
         json3 = json1;
         QCOMPARE(json3.type(), type);
     }
+
+    // ConstructorFromValue
+#define CONSTRUCT_FROM_VALUE_TEST(name, value, expected_type, checker) \
+    void ConstructorFromValue_##name() \
+    { \
+        GJson json1(value); \
+        QCOMPARE(json1.type(), GJson::expected_type); \
+        QVERIFY(json1.checker()); \
+    }
+
+    CONSTRUCT_FROM_VALUE_TEST(BoolTrue, true, Bool, isBool)
+    CONSTRUCT_FROM_VALUE_TEST(BoolFalse, false, Bool, isBool)
+    CONSTRUCT_FROM_VALUE_TEST(Short1, 1, Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(ShortMax, std::numeric_limits<short>::max(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(ShortMin, std::numeric_limits<short>::min(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(UShort1, 1U, Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(UShortMax, std::numeric_limits<unsigned short>::max(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(UShortMin, std::numeric_limits<unsigned short>::min(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(Int1, 1, Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(IntMax, std::numeric_limits<int>::max(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(IntMin, std::numeric_limits<int>::min(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(UInt1, 1U, Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(UIntMax, std::numeric_limits<unsigned int>::max(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(UIntMin, std::numeric_limits<unsigned int>::min(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(Long1, 1L, Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(LongMax, std::numeric_limits<long>::max(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(LongMin, std::numeric_limits<long>::min(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(ULong1, 1UL, Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(ULongMax, std::numeric_limits<unsigned long>::max(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(ULongMin, std::numeric_limits<unsigned long>::min(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(LongLong1, 1LL, Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(LongLongMax, std::numeric_limits<long long>::max(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(LongLongMin, std::numeric_limits<long long>::min(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(ULongLong1, 1LL, Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(ULongLongMax, std::numeric_limits<long long>::max(), Integer, isInteger)
+    CONSTRUCT_FROM_VALUE_TEST(ULongLongMin, std::numeric_limits<long long>::min(), Integer, isInteger)
+
 };
 
 QTEST_APPLESS_MAIN(GJsonTest)

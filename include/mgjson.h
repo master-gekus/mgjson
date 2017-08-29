@@ -101,10 +101,13 @@ public:
     mgjson(bool value);
     mgjson(int value);
     mgjson(unsigned int value);
+    mgjson(long value);
+    mgjson(unsigned long value);
     mgjson(long long value);
     mgjson(unsigned long long value);
     mgjson(float value);
     mgjson(double value);
+    mgjson(long double value);
     mgjson(const char* value);
     mgjson &operator=(const mgjson& other);
 
