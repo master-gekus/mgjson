@@ -223,8 +223,15 @@ class TypedConstructorTest : public ::testing::TestWithParam<mgjson::json_type>
 TEST_P(TypedConstructorTest, ConstructFromType)
 {
     mgjson::json_type type = GetParam();
-    mgjson json(type);
-    EXPECT_EQ(json.type(), type);
+    mgjson json1(type);
+    EXPECT_EQ(json1.type(), type);
+
+    mgjson json2(json1);
+    EXPECT_EQ(json2.type(), type);
+
+    mgjson json3;
+    json3 = json1;
+    EXPECT_EQ(json3.type(), type);
 }
 
 INSTANTIATE_TEST_CASE_P(, TypedConstructorTest, ::testing::Values(

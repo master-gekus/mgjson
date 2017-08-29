@@ -63,8 +63,8 @@ public:
 
 private slots:
 
-    // TestTypedConstructor
-    void TestTypedConstructor_data()
+    // ConstructorFromType
+    void ConstructorFromType_data()
     {
         QTest::addColumn<GJson::Type>("type");
 
@@ -79,11 +79,19 @@ private slots:
         _test(Undefined);
 #undef _test
     }
-    void TestTypedConstructor()
+    void ConstructorFromType()
     {
         QFETCH(GJson::Type, type);
-        GJson test_json(type);
-        QCOMPARE(test_json.type(), type);
+
+        GJson json1(type);
+        QCOMPARE(json1.type(), type);
+
+        GJson json2(json1);
+        QCOMPARE(json2.type(), type);
+
+        GJson json3;
+        json3 = json1;
+        QCOMPARE(json3.type(), type);
     }
 };
 
