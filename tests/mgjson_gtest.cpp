@@ -197,3 +197,43 @@ TEST_F(SharedDataTest, TripleCopyOnWrite)
     EXPECT_EQ(c.value(), 2);
     EXPECT_EQ(c.is_copied(), true);
 }
+
+::std::ostream& operator<<(::std::ostream& os, const mgjson::json_type& type)
+{
+    switch (type) {
+#define _case(a) case mgjson::a: os << #a; break;
+    _case(Null);
+    _case(Bool);
+    _case(Integer);
+    _case(Double);
+    _case(String);
+    _case(Array);
+    _case(Object);
+    _case(Undefined);
+#undef _case
+    default: os << "<invalid>"; break;
+    }
+    return os;
+}
+
+class TypedConstructorTest : public ::testing::TestWithParam<mgjson::json_type>
+{
+};
+
+TEST_P(TypedConstructorTest, ConstructFromType)
+{
+    mgjson::json_type type = GetParam();
+    mgjson json(type);
+    EXPECT_EQ(json.type(), type);
+}
+
+INSTANTIATE_TEST_CASE_P(, TypedConstructorTest, ::testing::Values(
+    mgjson::Null,
+    mgjson::Bool,
+    mgjson::Integer,
+    mgjson::Double,
+    mgjson::String,
+    mgjson::Array,
+    mgjson::Object,
+    mgjson::Undefined
+));
