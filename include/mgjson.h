@@ -40,7 +40,7 @@ public:
         };
 
         parse_error error;
-        int offset, col,row;
+        int offset, col, row;
 
         static const char* error_string(parse_error err);
 
@@ -189,6 +189,17 @@ public:
         return from_json(data.data(), data.size(), result);
     }
 
+#ifdef MGJSON_USE_MSGPACK
+public:
+    std::string msgpack() const;
+
+    static mgjson msgunpack(const char *data, size_t cb_data, parse_result *result = nullptr);
+    static inline mgjson msgunpack(const std::string& data, parse_result *result = nullptr)
+    {
+        return msgunpack(data.data(), data.size(), result);
+    }
+#endif  // MGJSON_USE_MSGPACK
+
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
 };
@@ -310,6 +321,16 @@ public:
     {
         return mgjson::from_json(data.constData(), data.size(), result);
     }
+
+#ifdef MGJSON_USE_MSGPACK
+public:
+    QByteArray msgpack() const;
+
+    static inline mgjson msgunpack(const QByteArray& data, parse_result *result = nullptr)
+    {
+        return mgjson::msgunpack(data.constData(), data.size(), result);
+    }
+#endif  // MGJSON_USE_MSGPACK
 };
 
 template<>
@@ -323,6 +344,9 @@ inline QByteArray mgjson::to() const
 {
   return static_cast<const GJson*>(this)->toByteArray();
 }
+
+Q_DECLARE_METATYPE(mgjson)
+Q_DECLARE_METATYPE(GJson)
 
 #endif  // QT_CORE_LIB
 
