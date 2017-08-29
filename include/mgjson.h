@@ -179,6 +179,16 @@ public:
     mgjson take(const char* key);
     inline mgjson take(const std::string& key) { return take(key.c_str()); }
 
+public:
+    std::string to_json(json_format format = MaxReadable) const;
+
+    static mgjson from_json(const char *data, size_t cb_data, parse_result *result = nullptr);
+    static mgjson from_json(const char *data, parse_result *result = nullptr);
+    static inline mgjson from_json(const std::string& data, parse_result *result = nullptr)
+    {
+        return from_json(data.data(), data.size(), result);
+    }
+
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
 };
@@ -278,6 +288,28 @@ public:
     inline mgjson takeAt(const std::string& key) { return mgjson::take(key.c_str()); }
     inline mgjson takeAt(const QByteArray& key) { return mgjson::take(key.constData()); }
     inline mgjson takeAt(const QString& key) { return mgjson::take(key.toUtf8().constData()); }
+
+public:
+    QByteArray toJson(JsonFormat format = MaxReadable) const;
+    inline static mgjson fromJson(const char *data, size_t cb_data, parse_result *result = nullptr)
+    {
+        return mgjson::from_json(data, cb_data, result);
+    }
+
+    inline static mgjson fromJson(const char *data, parse_result *result = nullptr)
+    {
+        return mgjson::from_json(data, result);
+    }
+
+    static inline mgjson fromJson(const std::string& data, parse_result *result = nullptr)
+    {
+        return mgjson::from_json(data.data(), data.size(), result);
+    }
+
+    static inline mgjson fromJson(const QByteArray& data, parse_result *result = nullptr)
+    {
+        return mgjson::from_json(data.constData(), data.size(), result);
+    }
 };
 
 template<>
