@@ -80,9 +80,11 @@ public:
       type_(mgjson::Double),
       b_value_(0.0L != value),
       i_value_(static_cast<unsigned long long>(value)),
-      d_value_(value),
-      str_value_(std::to_string(value))
+      d_value_(value)
     {
+        char buf[std::numeric_limits<long double>::digits10 + 10];
+        sprintf(buf, "%.*Lg", std::numeric_limits<long double>::digits10 + 2, value);
+        str_value_.assign(buf);
     }
 
 public:
