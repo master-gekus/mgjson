@@ -76,6 +76,15 @@ public:
     {
     }
 
+    mgjson_private(long double value) :
+      type_(mgjson::Double),
+      b_value_(0.0L != value),
+      i_value_(static_cast<unsigned long long>(value)),
+      d_value_(value),
+      str_value_(std::to_string(value))
+    {
+    }
+
 public:
     struct Key {
         explicit Key(const Key& other) :
@@ -168,8 +177,42 @@ mgjson::mgjson(unsigned long long value) :
 {
 }
 
-mgjson::json_type mgjson::type() const
+mgjson::mgjson(float value) :
+    d(new mgjson_private(static_cast<long double>(value)))
+{
+}
+
+mgjson::mgjson(double value) :
+    d(new mgjson_private(static_cast<long double>(value)))
+{
+}
+
+mgjson::mgjson(long double value) :
+    d(new mgjson_private(value))
+{
+}
+
+mgjson::json_type
+mgjson::type() const
 {
   return d->type_;
+}
+
+bool
+mgjson::to_bool() const
+{
+    return d->b_value_;
+}
+
+unsigned long long
+mgjson::to_ulonglong() const
+{
+    return d->i_value_;
+}
+
+long double
+mgjson::to_longdouble() const
+{
+    return d->d_value_;
 }
 

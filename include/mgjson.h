@@ -130,12 +130,19 @@ public:
 
 public:
     bool to_bool() const;
-    int to_int() const;
-    unsigned int to_uint() const;
-    long long to_longlong() const;
+    inline char to_char() const { return static_cast<char>(to_ulonglong()); }
+    inline unsigned char to_uchar() const { return static_cast<unsigned char>(to_ulonglong()); }
+    inline short to_short() const { return static_cast<short>(to_ulonglong()); }
+    inline unsigned short to_ushort() const { return static_cast<unsigned short>(to_ulonglong()); }
+    inline int to_int() const { return static_cast<int>(to_ulonglong()); }
+    inline unsigned int to_uint() const { return static_cast<unsigned int>(to_ulonglong()); }
+    inline long to_long() const { return static_cast<long>(to_ulonglong()); }
+    inline unsigned long to_ulong() const { return static_cast<unsigned long>(to_ulonglong()); }
+    inline long long to_longlong() const { return static_cast<long long>(to_ulonglong()); }
     unsigned long long to_ulonglong() const;
-    float to_float() const;
-    double to_double() const;
+    long double to_longdouble() const;
+    inline float to_float() const { return static_cast<float>(to_longdouble()); }
+    inline double to_double() const { return static_cast<double>(to_longdouble()); }
     const char* to_str() const;
     std::string to_string() const;
 
@@ -252,12 +259,19 @@ public:
 
 public:
     inline bool toBool() const { return to_bool(); }
+    inline char toChar() const { return to_char(); }
+    inline unsigned char toUChar() const { return to_uchar(); }
+    inline short toShort() const { return to_short(); }
+    inline unsigned short toUShort() const { return to_ushort(); }
     inline int toInt() const { return to_int(); }
     inline unsigned int toUInt() const { return to_uint(); }
+    inline long toLong() const { return to_long(); }
+    inline unsigned long toULong() const { return to_ulong(); }
     inline long long toLongLong() const { return to_longlong(); }
     inline unsigned long long toULongLong() const { return to_ulonglong(); }
     inline float toFloat() const { return to_float(); }
     inline double toDouble() const { return to_double(); }
+    inline long double toLongDouble() const { return to_longdouble(); }
     inline const char* toStr() const { return to_str(); }
     inline std::string toStdString() const { return to_string(); }
 

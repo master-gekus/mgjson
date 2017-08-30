@@ -1,4 +1,5 @@
 #include <ctime>
+#include <cmath>
 #include <limits>
 
 #include <QtTest>
@@ -90,40 +91,46 @@ private slots:
     }
 
     // ConstructorFromValue
-#define CONSTRUCT_FROM_VALUE_TEST(name, value, expected_type, checker) \
+#define CONSTRUCT_FROM_VALUE_TEST(name, value, expected_type, checker, getter) \
     void ConstructorFromValue_##name() \
     { \
         GJson json1(value); \
         QCOMPARE(json1.type(), GJson::expected_type); \
         QVERIFY(json1.checker()); \
+        QCOMPARE(json1.getter(), value); \
+    \
+        GJson json2(json1); \
+        QCOMPARE(json2.type(), GJson::expected_type); \
+        QVERIFY(json2.checker()); \
+        QCOMPARE(json2.getter(), value); \
     }
 
-    CONSTRUCT_FROM_VALUE_TEST(BoolTrue, true, Bool, isBool)
-    CONSTRUCT_FROM_VALUE_TEST(BoolFalse, false, Bool, isBool)
-    CONSTRUCT_FROM_VALUE_TEST(Short1, 1, Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(ShortMax, std::numeric_limits<short>::max(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(ShortMin, std::numeric_limits<short>::min(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(UShort1, 1U, Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(UShortMax, std::numeric_limits<unsigned short>::max(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(UShortMin, std::numeric_limits<unsigned short>::min(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(Int1, 1, Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(IntMax, std::numeric_limits<int>::max(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(IntMin, std::numeric_limits<int>::min(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(UInt1, 1U, Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(UIntMax, std::numeric_limits<unsigned int>::max(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(UIntMin, std::numeric_limits<unsigned int>::min(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(Long1, 1L, Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(LongMax, std::numeric_limits<long>::max(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(LongMin, std::numeric_limits<long>::min(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(ULong1, 1UL, Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(ULongMax, std::numeric_limits<unsigned long>::max(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(ULongMin, std::numeric_limits<unsigned long>::min(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(LongLong1, 1LL, Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(LongLongMax, std::numeric_limits<long long>::max(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(LongLongMin, std::numeric_limits<long long>::min(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(ULongLong1, 1LL, Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(ULongLongMax, std::numeric_limits<long long>::max(), Integer, isInteger)
-    CONSTRUCT_FROM_VALUE_TEST(ULongLongMin, std::numeric_limits<long long>::min(), Integer, isInteger)
+#define CONSTRUCT_FROM_INT_VALUE_TESTS(type_name, type, value) \
+    CONSTRUCT_FROM_VALUE_TEST(type_name##Value, ((type)value), Integer, isInteger, to##type_name) \
+    CONSTRUCT_FROM_VALUE_TEST(type_name##Min, std::numeric_limits<type>::min(), Integer, isInteger, to##type_name) \
+    CONSTRUCT_FROM_VALUE_TEST(type_name##Max, std::numeric_limits<type>::max(), Integer, isInteger, to##type_name)
+
+#define CONSTRUCT_FROM_DBL_VALUE_TESTS(type_name, type) \
+    CONSTRUCT_FROM_VALUE_TEST(type_name##Pi, ((type)std::acos(((type)(-1.0)))), Double, isDouble, to##type_name) \
+    CONSTRUCT_FROM_VALUE_TEST(type_name##Min, std::numeric_limits<type>::min(), Double, isDouble, to##type_name) \
+    CONSTRUCT_FROM_VALUE_TEST(type_name##Max, std::numeric_limits<type>::max(), Double, isDouble, to##type_name)
+
+    CONSTRUCT_FROM_VALUE_TEST(BoolTrue, true, Bool, isBool, toBool)
+    CONSTRUCT_FROM_VALUE_TEST(BoolFalse, false, Bool, isBool, toBool)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(Char, char, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(UChar, unsigned char, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(Short, short, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(UShort, unsigned short, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(Int, int, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(UInt, unsigned int, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(Long, long, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(ULong, unsigned long, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(LongLong, long long, 1)
+    CONSTRUCT_FROM_INT_VALUE_TESTS(ULongLong, unsigned long long, 1)
+
+    CONSTRUCT_FROM_DBL_VALUE_TESTS(Float, float)
+    CONSTRUCT_FROM_DBL_VALUE_TESTS(Double, double)
+    CONSTRUCT_FROM_DBL_VALUE_TESTS(LongDouble, long double)
 
 };
 
