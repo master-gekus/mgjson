@@ -71,7 +71,7 @@ public:
       type_(mgjson::Integer),
       b_value_(!!value),
       i_value_(value),
-      d_value_(value),
+      d_value_(static_cast<long double>(value)),
       str_value_(std::to_string(value))
     {
     }
@@ -83,7 +83,13 @@ public:
       d_value_(value)
     {
         char buf[std::numeric_limits<long double>::digits10 + 10];
-        sprintf(buf, "%.*Lg", std::numeric_limits<long double>::digits10 + 2, value);
+#ifdef _MSC_VER
+        sprintf_s(buf, sizeof(buf), "%.*Lg",
+                  std::numeric_limits<long double>::digits10 + 2, value);
+#else
+        sprintf(buf, "%.*Lg",
+                std::numeric_limits<long double>::digits10 + 2, value);
+#endif
         str_value_.assign(buf);
     }
 
