@@ -94,7 +94,7 @@ public:
 #endif
 
 #ifdef _MSC_VER
-        int len = sprintf_s(buf, &str_value_.size(), "%.*Lg",
+        int len = sprintf_s(buf, str_value_.size(), "%.*Lg",
                   std::numeric_limits<long double>::digits10 + 2, value);
 #else
         int len = sprintf(buf, "%.*Lg",
