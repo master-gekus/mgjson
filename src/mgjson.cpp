@@ -298,7 +298,7 @@ QString
 GJson::toString() const
 {
     const std::string& str = mgjson::to_string();
-    return QString::fromUtf8(str.data(), str.size());
+    return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
 }
 
 #pragma message("TODO: Constructor form QVariant!")
