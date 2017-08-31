@@ -50,65 +50,79 @@ public:
     }
 
     mgjson_private(mgjson::json_type type) :
-      type_(type),
-      b_value_(false),
-      i_value_(0),
-      d_value_(0.0),
-      str_value_(mgjson::Null == type ? "null" : "")
+        type_(type),
+        b_value_(false),
+        i_value_(0),
+        d_value_(0.0),
+        str_value_(mgjson::Null == type ? "null" : "")
     {
     }
 
     mgjson_private(bool value) :
-      type_(mgjson::Bool),
-      b_value_(value),
-      i_value_(value ? 1 : 0),
-      d_value_(value ? 1.0 : 0.0),
-      str_value_(value ? "true" : "false")
+        type_(mgjson::Bool),
+        b_value_(value),
+        i_value_(value ? 1 : 0),
+        d_value_(value ? 1.0 : 0.0),
+        str_value_(value ? "true" : "false")
     {
     }
 
     mgjson_private(unsigned long long value) :
-      type_(mgjson::Integer),
-      b_value_(!!value),
-      i_value_(value),
-      d_value_(static_cast<long double>(value)),
-      str_value_(std::to_string(value))
+        type_(mgjson::Integer),
+        b_value_(!!value),
+        i_value_(value),
+        d_value_(static_cast<long double>(value)),
+#ifdef QT_CORE_LIB
+        str_value_(QByteArray::number(value))
+#else
+        str_value_(std::to_string(value))
+#endif
     {
     }
 
     mgjson_private(long double value) :
-      type_(mgjson::Double),
-      b_value_(0.0L != value),
-      i_value_(static_cast<unsigned long long>(value)),
-      d_value_(value)
+        type_(mgjson::Double),
+        b_value_(0.0L != value),
+        i_value_(static_cast<unsigned long long>(value)),
+        d_value_(value)
     {
-        char buf[std::numeric_limits<long double>::digits10 + 10];
+        str_value_.resize(std::numeric_limits<long double>::digits10 + 10);
+#ifdef QT_CORE_LIB
+        char* buf = str_value_.data();
+#else
+        char* buf = &str_value_.front();
+#endif
+
 #ifdef _MSC_VER
-        sprintf_s(buf, sizeof(buf), "%.*Lg",
+        int len = sprintf_s(buf, &str_value_.size(), "%.*Lg",
                   std::numeric_limits<long double>::digits10 + 2, value);
 #else
-        sprintf(buf, "%.*Lg",
+        int len = sprintf(buf, "%.*Lg",
                 std::numeric_limits<long double>::digits10 + 2, value);
 #endif
-        str_value_.assign(buf);
+        str_value_.resize(len);
     }
 
     mgjson_private(const char* value) :
-      type_(mgjson::String),
-      b_value_(false),
-      i_value_(0),
-      d_value_(0.0),
-      str_value_(value)
+        type_(mgjson::String),
+        b_value_(false),
+        i_value_(0),
+        d_value_(0.0),
+        str_value_(value)
     {
         _update_values_from_string();
     }
 
+#ifdef QT_CORE_LIB
+    mgjson_private(const QByteArray& value) :
+#else
     mgjson_private(const std::string& value) :
-      type_(mgjson::String),
-      b_value_(false),
-      i_value_(0),
-      d_value_(0.0),
-      str_value_(value)
+#endif
+        type_(mgjson::String),
+        b_value_(false),
+        i_value_(0),
+        d_value_(0.0),
+        str_value_(value)
     {
         _update_values_from_string();
     }
@@ -140,14 +154,15 @@ public:
     };
 
 public:
-#ifdef QT_CORE_LIB
-#pragma message("TODO: In case of Qt build use QByteArray instead of std::string!")
-#endif
     mgjson::json_type type_;
     bool b_value_;
     unsigned long long i_value_;
     long double d_value_;
+#ifdef QT_CORE_LIB
+    QByteArray str_value_;
+#else
     std::string str_value_;
+#endif
     std::vector<mgjson> array_;
     std::map<Key,mgjson> map_;
 };
@@ -235,18 +250,22 @@ mgjson::mgjson(const char* value) :
 }
 
 mgjson::mgjson(const std::string& value) :
+#ifdef QT_CORE_LIB
+    d(new mgjson_private(QByteArray::fromStdString(value)))
+#else
     d(new mgjson_private(value))
+#endif
 {
 }
 
 #ifdef QT_CORE_LIB
-GJson::GJson(const QByteArray& value) :
-    mgjson(value.toStdString())
+mgjson::mgjson(const QByteArray& value) :
+    d(new mgjson_private(value))
 {
 }
 
-GJson::GJson(const QString& value) :
-    mgjson(value.toUtf8().toStdString())
+mgjson::mgjson(const QString& value) :
+    d(new mgjson_private(value.toUtf8()))
 {
 }
 #endif
@@ -278,8 +297,14 @@ mgjson::to_longdouble() const
 const char*
 mgjson::to_str() const
 {
+#ifdef QT_CORE_LIB
+    return d->str_value_.constData();
+#else
     return d->str_value_.c_str();
+#endif
 }
+
+#ifndef QT_CORE_LIB
 
 const std::string&
 mgjson::to_string() const
@@ -287,20 +312,29 @@ mgjson::to_string() const
     return d->str_value_;
 }
 
-#ifdef QT_CORE_LIB
-QByteArray
+#else
+
+std::string
+mgjson::to_string() const
+{
+    return d->str_value_.toStdString();
+}
+
+const QByteArray&
 GJson::toByteArray() const
 {
-    return QByteArray::fromStdString(mgjson::to_string());
+    return d->str_value_;
 }
 
 QString
 GJson::toString() const
 {
-    const std::string& str = mgjson::to_string();
-    return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
+    /* We use fromUtf8(const char*, int) because fromUtf8(const QByteArray&) trancates
+     * value by the first '\0'
+     */
+    const QByteArray& str = d->str_value_;
+    return QString::fromUtf8(str.constData(), str.size());
 }
 
 #pragma message("TODO: Constructor form QVariant!")
-
 #endif

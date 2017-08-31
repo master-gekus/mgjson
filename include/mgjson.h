@@ -112,6 +112,12 @@ public:
     mgjson(const std::string& value);
     mgjson &operator=(const mgjson& other);
 
+#ifdef QT_CORE_LIB
+    mgjson(const QString &value);
+    mgjson(const QByteArray &value);
+    mgjson(const QVariant &value);
+#endif
+
 public:
     ~mgjson();
 
@@ -145,7 +151,11 @@ public:
     inline float to_float() const { return static_cast<float>(to_longdouble()); }
     inline double to_double() const { return static_cast<double>(to_longdouble()); }
     const char* to_str() const;
+#ifdef QT_CORE_LIB
+    std::string to_string() const;
+#else
     const std::string& to_string() const;
+#endif
 
     inline operator bool () const { return to_bool(); }
     inline operator int () const { return to_int(); }
@@ -155,8 +165,11 @@ public:
     inline operator float () const { return to_float(); }
     inline operator double () const { return to_double(); }
     inline operator const char* () const { return to_str(); }
-    inline operator const std::string& () const { return to_string(); }
     inline operator std::string () const { return to_string(); }
+
+#ifndef QT_CORE_LIB
+    inline operator const std::string& () const { return to_string(); }
+#endif
 
     template<typename T>
     inline T to() const { return (T) (*this); }
@@ -214,6 +227,10 @@ public:
 
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
+
+#ifdef QT_CORE_LIB
+    friend class GJson;
+#endif   // QT_CORE_LIB
 };
 
 _mgjson_declare_operators_for_flags(mgjson::json_format)
@@ -242,9 +259,6 @@ public:
 public:
     using mgjson::mgjson;
     inline GJson(Type type = Null) : mgjson(type) {}
-    GJson(const QString &value);
-    GJson(const QByteArray &value);
-    GJson(const QVariant &value);
 
 public:
     inline bool isNull() const { return is_null(); }
@@ -275,14 +289,15 @@ public:
     inline double toDouble() const { return to_double(); }
     inline long double toLongDouble() const { return to_longdouble(); }
     inline const char* toStr() const { return to_str(); }
-    inline const std::string& toStdString() const { return to_string(); }
+    inline std::string toStdString() const { return to_string(); }
 
+    const QByteArray& toByteArray() const;
     QString toString() const;
-    QByteArray toByteArray() const;
     QVariant toVariant() const;
 
-    inline operator QString () const { return toString(); }
     inline operator QByteArray () const { return toByteArray(); }
+    inline operator const QByteArray& () const { return toByteArray(); }
+    inline operator QString () const { return toString(); }
     inline operator QVariant () const { return toVariant(); }
 
 public:
