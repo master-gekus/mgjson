@@ -132,6 +132,90 @@ private slots:
     CONSTRUCT_FROM_DBL_VALUE_TESTS(Double, double)
     CONSTRUCT_FROM_DBL_VALUE_TESTS(LongDouble, long double)
 
+    void ConstructorFromValue_ConstChar()
+    {
+        static const char test_string[]="Test string.";
+
+        GJson json1(test_string);
+        QCOMPARE(json1.type(), GJson::String);
+        QVERIFY(json1.isString());
+        QCOMPARE(json1.toStr(), test_string);
+
+        GJson json2(json1);
+        QCOMPARE(json2.type(), GJson::String);
+        QVERIFY(json2.isString());
+        QCOMPARE(json2.toStr(), test_string);
+    }
+
+    void ConstructorFromValue_StdString()
+    {
+        static const std::string test_string("Test string.");
+
+        GJson json1(test_string);
+        QCOMPARE(json1.type(), GJson::String);
+        QVERIFY(json1.isString());
+        QCOMPARE(json1.toStdString(), test_string);
+
+        GJson json2(json1);
+        QCOMPARE(json2.type(), GJson::String);
+        QVERIFY(json2.isString());
+        QCOMPARE(json2.toStdString(), test_string);
+    }
+
+    void ConstructorFromValue_StdStringWithZeros()
+    {
+        static const char test_string_data[]="Data before zero\0Data after zero";
+        static const std::string test_string(test_string_data, sizeof(test_string_data) - 1);
+        QVERIFY(std::string(test_string_data) != test_string);
+
+        GJson json1(test_string);
+        QCOMPARE(json1.type(), GJson::String);
+        QVERIFY(json1.isString());
+        QCOMPARE(json1.toStdString(), test_string);
+
+        GJson json2(json1);
+        QCOMPARE(json2.type(), GJson::String);
+        QVERIFY(json2.isString());
+        QCOMPARE(json2.toStdString(), test_string);
+        QCOMPARE(json2.toStdString().size(), sizeof(test_string_data) - 1);
+    }
+
+    void ConstructorFromValue_QByteArray()
+    {
+        static const char test_string_data[]="Data before zero\0Data after zero";
+        static const QByteArray test_string(test_string_data, sizeof(test_string_data) - 1);
+        QVERIFY(QByteArray(test_string_data) != test_string);
+
+        GJson json1(test_string);
+        QCOMPARE(json1.type(), GJson::String);
+        QVERIFY(json1.isString());
+        QCOMPARE(json1.toByteArray(), test_string);
+
+        GJson json2(json1);
+        QCOMPARE(json2.type(), GJson::String);
+        QVERIFY(json2.isString());
+        QCOMPARE(json2.toByteArray(), test_string);
+        QCOMPARE(json2.toByteArray().size(), static_cast<int>(sizeof(test_string_data) - 1));
+    }
+
+    void ConstructorFromValue_QString()
+    {
+        static const char test_string_data[]="Data before zero\0Data after zero";
+        static const QString test_string(QString::fromUtf8(test_string_data,
+                                                           sizeof(test_string_data) - 1));
+        QVERIFY(QString::fromUtf8(test_string_data) != test_string);
+
+        GJson json1(test_string);
+        QCOMPARE(json1.type(), GJson::String);
+        QVERIFY(json1.isString());
+        QCOMPARE(json1.toString(), test_string);
+
+        GJson json2(json1);
+        QCOMPARE(json2.type(), GJson::String);
+        QVERIFY(json2.isString());
+        QCOMPARE(json2.toString(), test_string);
+        QCOMPARE(json2.toString().size(), static_cast<int>(sizeof(test_string_data) - 1));
+    }
 };
 
 QTEST_APPLESS_MAIN(GJsonTest)

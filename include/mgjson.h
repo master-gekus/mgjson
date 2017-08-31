@@ -109,6 +109,7 @@ public:
     mgjson(double value);
     mgjson(long double value);
     mgjson(const char* value);
+    mgjson(const std::string& value);
     mgjson &operator=(const mgjson& other);
 
 public:
@@ -144,7 +145,7 @@ public:
     inline float to_float() const { return static_cast<float>(to_longdouble()); }
     inline double to_double() const { return static_cast<double>(to_longdouble()); }
     const char* to_str() const;
-    std::string to_string() const;
+    const std::string& to_string() const;
 
     inline operator bool () const { return to_bool(); }
     inline operator int () const { return to_int(); }
@@ -154,6 +155,7 @@ public:
     inline operator float () const { return to_float(); }
     inline operator double () const { return to_double(); }
     inline operator const char* () const { return to_str(); }
+    inline operator const std::string& () const { return to_string(); }
     inline operator std::string () const { return to_string(); }
 
     template<typename T>
@@ -273,7 +275,7 @@ public:
     inline double toDouble() const { return to_double(); }
     inline long double toLongDouble() const { return to_longdouble(); }
     inline const char* toStr() const { return to_str(); }
-    inline std::string toStdString() const { return to_string(); }
+    inline const std::string& toStdString() const { return to_string(); }
 
     QString toString() const;
     QByteArray toByteArray() const;

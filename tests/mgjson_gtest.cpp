@@ -93,3 +93,52 @@ CONSTRUCT_FROM_INT_VALUE_TESTS(ULongLong, unsigned long long, to_ulonglong)
 CONSTRUCT_FROM_FLT_VALUE_TESTS(Float, float, to_float)
 CONSTRUCT_FROM_FLT_VALUE_TESTS(Double, double, to_double)
 CONSTRUCT_FROM_FLT_VALUE_TESTS(LongDouble, long double, to_longdouble)
+
+TEST(ConstructorFromValue, ConstChar)
+{
+    static const char test_string[]="Test string.";
+
+    mgjson json1(test_string);
+    EXPECT_EQ(json1.type(), mgjson::String);
+    EXPECT_TRUE(json1.is_string());
+    EXPECT_STREQ(json1.to_str(), test_string);
+
+    mgjson json2(json1);
+    EXPECT_EQ(json2.type(), mgjson::String);
+    EXPECT_TRUE(json2.is_string());
+    EXPECT_STREQ(json2.to_str(), test_string);
+}
+
+TEST(ConstructorFromValue, StdString)
+{
+    static const std::string test_string("Test string.");
+
+    mgjson json1(test_string);
+    EXPECT_EQ(json1.type(), mgjson::String);
+    EXPECT_TRUE(json1.is_string());
+    EXPECT_EQ(json1.to_string(), test_string);
+
+    mgjson json2(json1);
+    EXPECT_EQ(json2.type(), mgjson::String);
+    EXPECT_TRUE(json2.is_string());
+    EXPECT_EQ(json2.to_string(), test_string);
+}
+
+TEST(ConstructorFromValue, StdStringWithZeros)
+{
+    static const char test_string_data[]="Data before zero\0Data after zero";
+    static const std::string test_string(test_string_data, sizeof(test_string_data) - 1);
+    ASSERT_NE(std::string(test_string_data), test_string);
+
+    mgjson json1(test_string);
+    EXPECT_EQ(json1.type(), mgjson::String);
+    EXPECT_TRUE(json1.is_string());
+    EXPECT_EQ(json1.to_string(), test_string);
+
+    mgjson json2(json1);
+    EXPECT_EQ(json2.type(), mgjson::String);
+    EXPECT_TRUE(json2.is_string());
+    EXPECT_EQ(json2.to_string(), test_string);
+    EXPECT_EQ(json2.to_string().size(), sizeof(test_string_data) - 1);
+}
+

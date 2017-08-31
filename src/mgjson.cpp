@@ -93,6 +93,32 @@ public:
         str_value_.assign(buf);
     }
 
+    mgjson_private(const char* value) :
+      type_(mgjson::String),
+      b_value_(false),
+      i_value_(0),
+      d_value_(0.0),
+      str_value_(value)
+    {
+        _update_values_from_string();
+    }
+
+    mgjson_private(const std::string& value) :
+      type_(mgjson::String),
+      b_value_(false),
+      i_value_(0),
+      d_value_(0.0),
+      str_value_(value)
+    {
+        _update_values_from_string();
+    }
+
+private:
+    void _update_values_from_string()
+    {
+#pragma message("TODO: Implement parsing string into other values!")
+    }
+
 public:
     struct Key {
         explicit Key(const Key& other) :
@@ -114,6 +140,9 @@ public:
     };
 
 public:
+#ifdef QT_CORE_LIB
+#pragma message("TODO: In case of Qt build use QByteArray instead of std::string!")
+#endif
     mgjson::json_type type_;
     bool b_value_;
     unsigned long long i_value_;
@@ -200,6 +229,28 @@ mgjson::mgjson(long double value) :
 {
 }
 
+mgjson::mgjson(const char* value) :
+    d(new mgjson_private(value))
+{
+}
+
+mgjson::mgjson(const std::string& value) :
+    d(new mgjson_private(value))
+{
+}
+
+#ifdef QT_CORE_LIB
+GJson::GJson(const QByteArray& value) :
+    mgjson(value.toStdString())
+{
+}
+
+GJson::GJson(const QString& value) :
+    mgjson(value.toUtf8().toStdString())
+{
+}
+#endif
+
 mgjson::json_type
 mgjson::type() const
 {
@@ -224,3 +275,32 @@ mgjson::to_longdouble() const
     return d->d_value_;
 }
 
+const char*
+mgjson::to_str() const
+{
+    return d->str_value_.c_str();
+}
+
+const std::string&
+mgjson::to_string() const
+{
+    return d->str_value_;
+}
+
+#ifdef QT_CORE_LIB
+QByteArray
+GJson::toByteArray() const
+{
+    return QByteArray::fromStdString(mgjson::to_string());
+}
+
+QString
+GJson::toString() const
+{
+    const std::string& str = mgjson::to_string();
+    return QString::fromUtf8(str.data(), str.size());
+}
+
+#pragma message("TODO: Constructor form QVariant!")
+
+#endif
