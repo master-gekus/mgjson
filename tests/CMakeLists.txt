@@ -14,6 +14,8 @@ if(MGJSON_USE_QTEST)
     endif()
 endif()
 
+add_definitions(-DMGJSON_AUTOCAST_STRING_VALUES)
+
 if(MGJSON_USE_QTEST)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_INCLUDE_CURRENT_DIR ON)

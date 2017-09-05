@@ -1,5 +1,6 @@
 #include <string>
 #include <cstring>
+#include <cstdlib>
 #include <map>
 #include <vector>
 #include <limits>
@@ -8,6 +9,7 @@
 
 #ifndef QT_CORE_LIB
 char *qstrdup(const char *);
+int qstricmp(const char *str1, const char *str2);
 #endif
 
 const char*
@@ -130,7 +132,56 @@ public:
 private:
     void _update_values_from_string()
     {
-#pragma message("TODO: Implement parsing string into other values!")
+#ifdef MGJSON_AUTOCAST_STRING_VALUES
+#   ifdef QT_CORE_LIB
+        const char* str = str_value_.constData();
+#   else
+        const char* str = str_value_.c_str();
+#   endif
+        if (strlen(str) != static_cast<size_t>(str_value_.size())) {
+            return;     // Never cast strings with zeros
+        }
+        if ((0 == qstricmp("0", str)) || (0 == qstricmp("off", str))
+            || (0 == qstricmp("false", str))) {
+            return;
+        }
+        if ((0 == qstricmp("on", str)) || (0 == qstricmp("true", str))) {
+            b_value_ = true;
+            i_value_ = 1;
+            d_value_ = 1.0;
+            return;
+        }
+        char* endptr;
+        bool i_value_set = false;
+        unsigned long long i_val = strtoull(str, &endptr, 0);
+        if ((str + str_value_.size()) == endptr) {
+            i_value_ = i_val;
+            i_value_set = false;
+        }
+        long double d_val = strtold(str, &endptr);
+        if ((str + str_value_.size()) == endptr) {
+            d_value_ = d_val;
+            if (!i_value_set) {
+                if (0.0 > d_val) {
+                    if (static_cast<long double>(std::numeric_limits<long long>::min() > d_val)) {
+                        i_value_ = static_cast<unsigned long long>(std::numeric_limits<long long>::min());
+                    }
+                    else {
+                        i_value_ = static_cast<unsigned long long>(static_cast<long long>(d_val));
+                    }
+                }
+                else {
+                    if (static_cast<long double>(std::numeric_limits<unsigned long long>::max() < d_val)) {
+                        i_value_ = static_cast<unsigned long long>(std::numeric_limits<unsigned long long>::max());
+                    }
+                    else {
+                        i_value_ = static_cast<unsigned long long>(d_val);
+                    }
+                }
+            }
+        }
+        b_value_ = (0 != i_value_);
+#endif
     }
 
 public:

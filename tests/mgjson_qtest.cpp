@@ -10,14 +10,24 @@
 
 Q_DECLARE_METATYPE(GJson::Type)
 Q_DECLARE_METATYPE(GJsonParseError::ParseError)
+Q_DECLARE_METATYPE(long double)
 
 namespace QTest
 {
     template <>
-    char* toString<GJsonParseError::ParseError>(const GJsonParseError::ParseError& err)
+    char* toString<long double>(const long double& value)
     {
-        return qstrdup(GJsonParseError::error_string(err));
+        char buf[std::numeric_limits<long double>::digits10 + 10];
+#ifdef _MSC_VER
+        sprintf_s(buf, str_value_.size(), "%.*Lg",
+                  std::numeric_limits<long double>::digits10 + 2, value);
+#else
+        sprintf(buf, "%.*Lg",
+                std::numeric_limits<long double>::digits10 + 2, value);
+#endif
+        return qstrdup(buf);
     }
+
 
     template <>
     char* toString<GJson::Type>(const GJson::Type& type)
@@ -37,7 +47,22 @@ namespace QTest
         }
     }
 
-    //  inline bool qCompare(const GJson& json, const char* value, const char *actual,
+    bool almost_equal(const long double& x, const long double& y)
+    {
+        return (std::abs(x-y) < (std::numeric_limits<long double>::epsilon() * std::abs(x+y)))
+                || (std::abs(x-y) < std::numeric_limits<long double>::min());
+    }
+
+    template<>
+    inline bool qCompare(const long double& t1, const long double& t2, const char *actual,
+                         const char *expected, const char *file, int line)
+    {
+        return compare_helper(almost_equal(t1, t2), "Compared values are not the same",
+                              toString(t1), toString(t2), actual, expected, file, line);
+    }
+
+
+//  inline bool qCompare(const GJson& json, const char* value, const char *actual,
 //                       const char *expected, const char *file, int line)
 //  {
 //    GJson value_json;
@@ -215,6 +240,53 @@ private slots:
         QVERIFY(json2.isString());
         QCOMPARE(json2.toString(), test_string);
         QCOMPARE(json2.toString().size(), static_cast<int>(sizeof(test_string_data) - 1));
+    }
+
+    // StringValueCast
+    void StringValueCast_data()
+    {
+        QTest::addColumn<QByteArray>("string");
+        QTest::addColumn<bool>("bvalue");
+        QTest::addColumn<unsigned long long>("ivalue");
+        QTest::addColumn<long double>("dvalue");
+
+#define _test(s,b,i,d) \
+        QTest::newRow(s) << QByteArrayLiteral(s) << b \
+            << static_cast<unsigned long long>(i) \
+            << static_cast<long double>(d)
+
+        _test("Not a value", false, 0, 0);
+        _test("0", false, 0, 0);
+        _test("Off", false, 0, 0);
+        _test("False", false, 0, 0);
+        _test("On", true, 1, 1);
+        _test("True", true, 1, 1);
+        _test("1", true, 1, 1);
+        _test("-1", true, -1, -1);
+        _test("0x10", true, 16, 16);
+        _test("1E100", true, std::numeric_limits<unsigned long long>::max(), 1E100L);
+        _test("1E1000", true, std::numeric_limits<unsigned long long>::max(), 1E1000L);
+        _test("-1E100", true, std::numeric_limits<long long>::min(), -1E100L);
+        _test("-1E1000", true, std::numeric_limits<long long>::min(), -1E1000L);
+        _test(".123456789012345678901234567890", false, 0, .123456789012345678901234567890L);
+        _test("-.123456789012345678901234567890", false, 0, -.123456789012345678901234567890L);
+        _test(".123456789012345678901234567890E100", true, std::numeric_limits<unsigned long long>::max(), .123456789012345678901234567890E100L);
+        _test(".123456789012345678901234567890E-100", false, 0, .123456789012345678901234567890E-100L);
+        _test("12345678901234.5678901234567890", true, 12345678901234, 12345678901234.5678901234567890L);
+        _test("-12345678901234.5678901234567890", true, -12345678901234, -12345678901234.5678901234567890L);
+#undef _test
+    }
+
+    void StringValueCast()
+    {
+        QFETCH(QByteArray, string);
+
+        GJson json(string);
+        QVERIFY(json.isString());
+        QCOMPARE(json.toByteArray(), string);
+        QTEST(json.toBool(), "bvalue");
+        QTEST(json.toULongLong(), "ivalue");
+        QTEST(json.toLongDouble(), "dvalue");
     }
 };
 
