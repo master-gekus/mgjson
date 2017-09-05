@@ -19,7 +19,7 @@ namespace QTest
     {
         char buf[std::numeric_limits<long double>::digits10 + 10];
 #ifdef _MSC_VER
-        sprintf_s(buf, str_value_.size(), "%.*Lg",
+        sprintf_s(buf, sizeof(buf), "%.*Lg",
                   std::numeric_limits<long double>::digits10 + 2, value);
 #else
         sprintf(buf, "%.*Lg",
@@ -265,9 +265,15 @@ private slots:
         _test("-1", true, -1, -1);
         _test("0x10", true, 16, 16);
         _test("1E100", true, std::numeric_limits<unsigned long long>::max(), 1E100L);
-        _test("1E1000", true, std::numeric_limits<unsigned long long>::max(), 1E1000L);
         _test("-1E100", true, std::numeric_limits<long long>::min(), -1E100L);
+#ifdef _MSC_VER
+        // In MSVC "long double" is the same as "double"
+        _test("1E300", true, std::numeric_limits<unsigned long long>::max(), 1E300L);
+        _test("-1E300", true, std::numeric_limits<long long>::min(), -1E300L);
+#else
+        _test("1E1000", true, std::numeric_limits<unsigned long long>::max(), 1E1000L);
         _test("-1E1000", true, std::numeric_limits<long long>::min(), -1E1000L);
+#endif
         _test(".123456789012345678901234567890", false, 0, .123456789012345678901234567890L);
         _test("-.123456789012345678901234567890", false, 0, -.123456789012345678901234567890L);
         _test(".123456789012345678901234567890E100", true, std::numeric_limits<unsigned long long>::max(), .123456789012345678901234567890E100L);
