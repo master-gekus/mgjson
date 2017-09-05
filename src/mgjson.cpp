@@ -156,7 +156,7 @@ private:
         unsigned long long i_val = strtoull(str, &endptr, 0);
         if ((str + str_value_.size()) == endptr) {
             i_value_ = i_val;
-            i_value_set = false;
+            i_value_set = true;
         }
         long double d_val = strtold(str, &endptr);
         if ((str + str_value_.size()) == endptr) {
@@ -179,6 +179,8 @@ private:
                     }
                 }
             }
+        } else if (i_value_set) {
+            d_value_ = static_cast<long double>(i_value_);
         }
         b_value_ = (0 != i_value_);
 #endif
