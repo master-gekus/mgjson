@@ -177,6 +177,16 @@ TEST_P(StringValueCastTest, ConstructFromString)
                          static_cast<unsigned long long>(i), \
                          static_cast<long double>(d)}
 
+#ifdef _MSC_VER
+#define _long_double_tests \
+    _test("1E300", true, std::numeric_limits<unsigned long long>::max(), 1E300L), \
+    _test("-1E300", true, std::numeric_limits<long long>::min(), -1E300L)
+#else
+#define _long_double_tests \
+    _test("1E1000", true, std::numeric_limits<unsigned long long>::max(), 1E1000L), \
+    _test("-1E1000", true, std::numeric_limits<long long>::min(), -1E1000L)
+#endif
+
 INSTANTIATE_TEST_CASE_P(, StringValueCastTest, ::testing::Values(
     _test("Not a value", false, 0, 0),
     _test("0", false, 0, 0),
@@ -189,14 +199,7 @@ INSTANTIATE_TEST_CASE_P(, StringValueCastTest, ::testing::Values(
     _test("0x10", true, 16, 16),
     _test("1E100", true, std::numeric_limits<unsigned long long>::max(), 1E100L),
     _test("-1E100", true, std::numeric_limits<long long>::min(), -1E100L),
-#ifdef _MSC_VER
-    // In MSVC "long double" is the same as "double"
-    _test("1E300", true, std::numeric_limits<unsigned long long>::max(), 1E300L),
-    _test("-1E300", true, std::numeric_limits<long long>::min(), -1E300L),
-#else
-    _test("1E1000", true, std::numeric_limits<unsigned long long>::max(), 1E1000L),
-    _test("-1E1000", true, std::numeric_limits<long long>::min(), -1E1000L),
-#endif
+    _long_double_tests,
     _test(".123456789012345678901234567890", false, 0, .123456789012345678901234567890L),
     _test("-.123456789012345678901234567890", false, 0, -.123456789012345678901234567890L),
     _test(".123456789012345678901234567890E100", true, std::numeric_limits<unsigned long long>::max(), .123456789012345678901234567890E100L),
