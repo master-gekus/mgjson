@@ -142,3 +142,66 @@ TEST(ConstructorFromValue, StdStringWithZeros)
     EXPECT_EQ(json2.to_string().size(), sizeof(test_string_data) - 1);
 }
 
+struct StringValueCastParam
+{
+    std::string str_;
+    bool b_value_;
+    unsigned long long i_value_;
+    long double d_value;
+};
+
+::std::ostream& operator<<(::std::ostream& os, const StringValueCastParam& p)
+{
+    os << "\"" << p.str_ << "\"";
+    return os;
+}
+
+class StringValueCastTest : public ::testing::TestWithParam<StringValueCastParam>
+{
+};
+
+TEST_P(StringValueCastTest, ConstructFromString)
+{
+    const StringValueCastParam& p = GetParam();
+    mgjson j(p.str_);
+    EXPECT_EQ(j.type(), mgjson::String);
+
+    EXPECT_EQ(j.to_string(), p.str_);
+    EXPECT_EQ(j.to_bool(), p.b_value_);
+    EXPECT_EQ(j.to_ulonglong(), p.i_value_);
+    EXPECT_EQ(j.to_longdouble(), p.d_value);
+}
+
+#define _test(s,b,i,d) \
+    StringValueCastParam{std::string(s, sizeof(s) - 1), b, \
+                         static_cast<unsigned long long>(i), \
+                         static_cast<long double>(d)}
+
+INSTANTIATE_TEST_CASE_P(, StringValueCastTest, ::testing::Values(
+    _test("Not a value", false, 0, 0),
+    _test("0", false, 0, 0),
+    _test("Off", false, 0, 0),
+    _test("False", false, 0, 0),
+    _test("On", true, 1, 1),
+    _test("True", true, 1, 1),
+    _test("1", true, 1, 1),
+    _test("-1", true, -1, -1),
+    _test("0x10", true, 16, 16),
+    _test("1E100", true, std::numeric_limits<unsigned long long>::max(), 1E100L),
+    _test("-1E100", true, std::numeric_limits<long long>::min(), -1E100L),
+#ifdef _MSC_VER
+    // In MSVC "long double" is the same as "double"
+    _test("1E300", true, std::numeric_limits<unsigned long long>::max(), 1E300L),
+    _test("-1E300", true, std::numeric_limits<long long>::min(), -1E300L),
+#else
+    _test("1E1000", true, std::numeric_limits<unsigned long long>::max(), 1E1000L),
+    _test("-1E1000", true, std::numeric_limits<long long>::min(), -1E1000L),
+#endif
+    _test(".123456789012345678901234567890", false, 0, .123456789012345678901234567890L),
+    _test("-.123456789012345678901234567890", false, 0, -.123456789012345678901234567890L),
+    _test(".123456789012345678901234567890E100", true, std::numeric_limits<unsigned long long>::max(), .123456789012345678901234567890E100L),
+    _test(".123456789012345678901234567890E-100", false, 0, .123456789012345678901234567890E-100L),
+    _test("12345678901234.5678901234567890", true, 12345678901234, 12345678901234.5678901234567890L),
+    _test("-12345678901234.5678901234567890", true, -12345678901234, -12345678901234.5678901234567890L)
+));
+#undef _test
