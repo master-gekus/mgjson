@@ -92,6 +92,12 @@ public:
     };
     _mgjson_declare_flags(json_format, json_format_flags)
 
+#ifdef QT_CORE_LIB
+public:
+    typedef json_type Type;
+    typedef json_format JsonFormat;
+#endif
+
 private:
     mgjson(mgjson_private *data);
 
@@ -135,6 +141,20 @@ public:
     inline bool is_compound() const { json_type t = type(); return (Object == t) || (Array == t); }
     inline bool is_set() const { json_type t = type(); return (Null != t) && (Undefined != t); }
 
+#ifdef QT_CORE_LIB
+    inline bool isNull() const { return is_null(); }
+    inline bool isBool() const { return is_bool(); }
+    inline bool isInteger() const { return is_integer(); }
+    inline bool isDouble() const { return is_double(); }
+    inline bool isNumeric() const { return is_numeric(); }
+    inline bool isString() const { return is_string(); }
+    inline bool isArray() const { return is_array(); }
+    inline bool isObject() const { return is_object(); }
+    inline bool isCompound() const { return is_compound(); }
+    inline bool isUndefined() const { return is_undefined(); }
+    inline bool isSet() const { return is_set(); }
+#endif
+
 public:
     bool to_bool() const;
     inline char to_char() const { return static_cast<char>(to_ulonglong()); }
@@ -151,10 +171,31 @@ public:
     inline float to_float() const { return static_cast<float>(to_longdouble()); }
     inline double to_double() const { return static_cast<double>(to_longdouble()); }
     const char* to_str() const;
-#ifdef QT_CORE_LIB
-    std::string to_string() const;
-#else
+
+#ifndef QT_CORE_LIB
     const std::string& to_string() const;
+#else
+    std::string to_string() const;
+
+    inline bool toBool() const { return to_bool(); }
+    inline char toChar() const { return to_char(); }
+    inline unsigned char toUChar() const { return to_uchar(); }
+    inline short toShort() const { return to_short(); }
+    inline unsigned short toUShort() const { return to_ushort(); }
+    inline int toInt() const { return to_int(); }
+    inline unsigned int toUInt() const { return to_uint(); }
+    inline long toLong() const { return to_long(); }
+    inline unsigned long toULong() const { return to_ulong(); }
+    inline long long toLongLong() const { return to_longlong(); }
+    inline unsigned long long toULongLong() const { return to_ulonglong(); }
+    inline float toFloat() const { return to_float(); }
+    inline double toDouble() const { return to_double(); }
+    inline long double toLongDouble() const { return to_longdouble(); }
+    inline const char* toStr() const { return to_str(); }
+    inline std::string toStdString() const { return to_string(); }
+    const QByteArray& toByteArray() const;
+    QString toString() const;
+    QVariant toVariant() const;
 #endif
 
     inline operator bool () const { return to_bool(); }
@@ -169,14 +210,24 @@ public:
 
 #ifndef QT_CORE_LIB
     inline operator const std::string& () const { return to_string(); }
+#else
+    inline operator QByteArray () const { return toByteArray(); }
+    inline operator const QByteArray& () const { return toByteArray(); }
+    inline operator QString () const { return toString(); }
+    inline operator QVariant () const { return toVariant(); }
 #endif
 
     template<typename T>
     inline T to() const { return (T) (*this); }
 
 public:
-    size_t count() const;
     void resize(size_t new_size);
+#ifdef QT_CORE_LIB
+    inline void resize(int new_size) { resize(static_cast<size_t>(new_size)); }
+    int count() const;
+#else
+    size_t count() const;
+#endif
 
     mgjson at(size_t index) const;
     mgjson& at(size_t index);
@@ -190,7 +241,26 @@ public:
     inline mgjson operator [](const char* key) const { return at(key); }
     inline mgjson& operator [](const char* key) { return at(key); }
 
+#ifdef QT_CORE_LIB
+    inline mgjson at(int index) const { return at(static_cast<size_t>(index)); }
+    inline mgjson& at(int index) { return at(static_cast<size_t>(index)); }
+    inline mgjson operator [](int index) const { return at(index); }
+    inline mgjson& operator [](int index) { return at(index); }
+
+    inline mgjson at(const QByteArray& key) const { return at(key.constData()); }
+    inline mgjson& at(const QByteArray& key) { return at(key.constData()); }
+    inline mgjson operator [](const QByteArray& key) const { return at(key.constData()); }
+    inline mgjson& operator [](const QByteArray& key) { return at(key.constData()); }
+
+    inline mgjson at(const QString& key) const { return at(key.toUtf8().constData()); }
+    inline mgjson& at(const QString& key) { return at(key.toUtf8().constData()); }
+    inline mgjson operator [](const QString& key) const { return at(key.toUtf8().constData()); }
+    inline mgjson& operator [](const QString& key) { return at(key.toUtf8().constData()); }
+
+    QList<QByteArray> keys() const;
+#else
     std::list<std::string> keys() const;
+#endif
 
 public:
     void append(const mgjson& value);
@@ -203,6 +273,20 @@ public:
     mgjson take(size_t index);
     mgjson take(const char* key);
     inline mgjson take(const std::string& key) { return take(key.c_str()); }
+
+#ifdef QT_CORE_LIB
+    inline void removeAt(int index) { mgjson::remove(static_cast<size_t>(index)); }
+    inline void removeAt(const char* key) { mgjson::remove(key); }
+    inline void removeAt(const std::string& key) { mgjson::remove(key.c_str()); }
+    inline void removeAt(const QByteArray& key) { mgjson::remove(key.constData()); }
+    inline void removeAt(const QString& key) { mgjson::remove(key.toUtf8().constData()); }
+
+    inline mgjson takeAt(int index) { return mgjson::take(static_cast<size_t>(index)); }
+    inline mgjson takeAt(const char* key) { return mgjson::take(key); }
+    inline mgjson takeAt(const std::string& key) { return mgjson::take(key.c_str()); }
+    inline mgjson takeAt(const QByteArray& key) { return mgjson::take(key.constData()); }
+    inline mgjson takeAt(const QString& key) { return mgjson::take(key.toUtf8().constData()); }
+#endif
 
 public:
     std::string to_json(json_format format = MaxReadable) const;
@@ -227,10 +311,6 @@ public:
 
 private:
     _mgjson_shared_data_ptr<mgjson_private> d;
-
-#ifdef QT_CORE_LIB
-    friend class GJson;
-#endif   // QT_CORE_LIB
 };
 
 _mgjson_declare_operators_for_flags(mgjson::json_format)
@@ -250,122 +330,42 @@ struct GJsonParseError : public mgjson::parse_result
     }
 };
 
-class GJson : public mgjson
-{
-public:
-    typedef json_type Type;
-    typedef json_format JsonFormat;
+typedef mgjson GJson;
 
-public:
-    using mgjson::mgjson;
-    inline GJson(Type type = Null) : mgjson(type) {}
+//class GJson : public mgjson
+//{
+//public:
+//    QByteArray toJson(JsonFormat format = MaxReadable) const;
+//    inline static mgjson fromJson(const char *data, size_t cb_data, parse_result *result = nullptr)
+//    {
+//        return mgjson::from_json(data, cb_data, result);
+//    }
 
-public:
-    inline bool isNull() const { return is_null(); }
-    inline bool isBool() const { return is_bool(); }
-    inline bool isInteger() const { return is_integer(); }
-    inline bool isDouble() const { return is_double(); }
-    inline bool isNumeric() const { return is_numeric(); }
-    inline bool isString() const { return is_string(); }
-    inline bool isArray() const { return is_array(); }
-    inline bool isObject() const { return is_object(); }
-    inline bool isCompound() const { return is_compound(); }
-    inline bool isUndefined() const { return is_undefined(); }
-    inline bool isSet() const { return is_set(); }
+//    inline static mgjson fromJson(const char *data, parse_result *result = nullptr)
+//    {
+//        return mgjson::from_json(data, result);
+//    }
 
-public:
-    inline bool toBool() const { return to_bool(); }
-    inline char toChar() const { return to_char(); }
-    inline unsigned char toUChar() const { return to_uchar(); }
-    inline short toShort() const { return to_short(); }
-    inline unsigned short toUShort() const { return to_ushort(); }
-    inline int toInt() const { return to_int(); }
-    inline unsigned int toUInt() const { return to_uint(); }
-    inline long toLong() const { return to_long(); }
-    inline unsigned long toULong() const { return to_ulong(); }
-    inline long long toLongLong() const { return to_longlong(); }
-    inline unsigned long long toULongLong() const { return to_ulonglong(); }
-    inline float toFloat() const { return to_float(); }
-    inline double toDouble() const { return to_double(); }
-    inline long double toLongDouble() const { return to_longdouble(); }
-    inline const char* toStr() const { return to_str(); }
-    inline std::string toStdString() const { return to_string(); }
+//    static inline mgjson fromJson(const std::string& data, parse_result *result = nullptr)
+//    {
+//        return mgjson::from_json(data.data(), data.size(), result);
+//    }
 
-    const QByteArray& toByteArray() const;
-    QString toString() const;
-    QVariant toVariant() const;
+//    static inline mgjson fromJson(const QByteArray& data, parse_result *result = nullptr)
+//    {
+//        return mgjson::from_json(data.constData(), data.size(), result);
+//    }
 
-    inline operator QByteArray () const { return toByteArray(); }
-    inline operator const QByteArray& () const { return toByteArray(); }
-    inline operator QString () const { return toString(); }
-    inline operator QVariant () const { return toVariant(); }
+//#ifdef MGJSON_USE_MSGPACK
+//public:
+//    QByteArray msgpack() const;
 
-public:
-    inline int count() const { return static_cast<int>(mgjson::count()); }
-    inline void resize(int new_size) { mgjson::resize(static_cast<size_t>(new_size)); }
-
-    inline mgjson at(int index) const { return mgjson::at(static_cast<int>(index)); }
-    inline mgjson& at(int index) { return mgjson::at(static_cast<int>(index)); }
-    inline mgjson operator [](int index) const { return at(index); }
-    inline mgjson& operator [](int index) { return at(index); }
-
-    inline mgjson at(const QByteArray& key) const { return mgjson::at(key.constData()); }
-    inline mgjson& at(const QByteArray& key) { return mgjson::at(key.constData()); }
-    inline mgjson operator [](const QByteArray& key) const { return mgjson::at(key.constData()); }
-    inline mgjson& operator [](const QByteArray& key) { return mgjson::at(key.constData()); }
-
-    inline mgjson at(const QString& key) const { return mgjson::at(key.toUtf8().constData()); }
-    inline mgjson& at(const QString& key) { return mgjson::at(key.toUtf8().constData()); }
-    inline mgjson operator [](const QString& key) const { return mgjson::at(key.toUtf8().constData()); }
-    inline mgjson& operator [](const QString& key) { return mgjson::at(key.toUtf8().constData()); }
-
-    QList<QByteArray> keys() const;
-
-public:
-    inline void removeAt(int index) { mgjson::remove(static_cast<size_t>(index)); }
-    inline void removeAt(const char* key) { mgjson::remove(key); }
-    inline void removeAt(const std::string& key) { mgjson::remove(key.c_str()); }
-    inline void removeAt(const QByteArray& key) { mgjson::remove(key.constData()); }
-    inline void removeAt(const QString& key) { mgjson::remove(key.toUtf8().constData()); }
-
-    inline mgjson takeAt(int index) { return mgjson::take(static_cast<size_t>(index)); }
-    inline mgjson takeAt(const char* key) { return mgjson::take(key); }
-    inline mgjson takeAt(const std::string& key) { return mgjson::take(key.c_str()); }
-    inline mgjson takeAt(const QByteArray& key) { return mgjson::take(key.constData()); }
-    inline mgjson takeAt(const QString& key) { return mgjson::take(key.toUtf8().constData()); }
-
-public:
-    QByteArray toJson(JsonFormat format = MaxReadable) const;
-    inline static mgjson fromJson(const char *data, size_t cb_data, parse_result *result = nullptr)
-    {
-        return mgjson::from_json(data, cb_data, result);
-    }
-
-    inline static mgjson fromJson(const char *data, parse_result *result = nullptr)
-    {
-        return mgjson::from_json(data, result);
-    }
-
-    static inline mgjson fromJson(const std::string& data, parse_result *result = nullptr)
-    {
-        return mgjson::from_json(data.data(), data.size(), result);
-    }
-
-    static inline mgjson fromJson(const QByteArray& data, parse_result *result = nullptr)
-    {
-        return mgjson::from_json(data.constData(), data.size(), result);
-    }
-
-#ifdef MGJSON_USE_MSGPACK
-public:
-    QByteArray msgpack() const;
-
-    static inline mgjson msgunpack(const QByteArray& data, parse_result *result = nullptr)
-    {
-        return mgjson::msgunpack(data.constData(), data.size(), result);
-    }
-#endif  // MGJSON_USE_MSGPACK
-};
+//    static inline mgjson msgunpack(const QByteArray& data, parse_result *result = nullptr)
+//    {
+//        return mgjson::msgunpack(data.constData(), data.size(), result);
+//    }
+//#endif  // MGJSON_USE_MSGPACK
+//};
 
 template<>
 inline QString mgjson::to() const
@@ -380,7 +380,6 @@ inline QByteArray mgjson::to() const
 }
 
 Q_DECLARE_METATYPE(mgjson)
-Q_DECLARE_METATYPE(GJson)
 
 #endif  // QT_CORE_LIB
 
