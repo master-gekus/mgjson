@@ -8,13 +8,15 @@ class TestSharedDataData : public _mgjson_shared_data
 {
 public:
     TestSharedDataData() :
+        _mgjson_shared_data(),
         copy_constuctor_called_(false),
         value_(0)
     {
         counter_++;
     }
 
-    TestSharedDataData(const TestSharedDataData& other):
+    TestSharedDataData(const TestSharedDataData& other) :
+        _mgjson_shared_data(),
         copy_constuctor_called_(true),
         value_(other.value_)
     {
