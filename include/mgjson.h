@@ -221,12 +221,17 @@ public:
     inline T to() const { return (T) (*this); }
 
 public:
+
+#ifdef QT_CORE_LIB
+    int
+#else
+    size_t
+#endif
+    count() const;
+
     void resize(size_t new_size);
 #ifdef QT_CORE_LIB
     inline void resize(int new_size) { resize(static_cast<size_t>(new_size)); }
-    int count() const;
-#else
-    size_t count() const;
 #endif
 
     mgjson at(size_t index) const;

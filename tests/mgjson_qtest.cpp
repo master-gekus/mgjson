@@ -294,6 +294,40 @@ private slots:
         QTEST(json.toULongLong(), "ivalue");
         QTEST(json.toLongDouble(), "dvalue");
     }
+
+    void CountAndResizeSimple_data()
+    {
+        QTest::addColumn<GJson>("json");
+#define _test(a) QTest::newRow(#a) << GJson(GJson::a)
+        _test(Null);
+        _test(Bool);
+        _test(Integer);
+        _test(Double);
+        _test(String);
+        _test(Array);
+        _test(Object);
+        _test(Undefined);
+#undef _test
+
+    }
+
+    void CountAndResizeSimple()
+    {
+        QFETCH(GJson, json);
+        QCOMPARE(json.count(), 0);
+
+        json.resize(0);
+        QCOMPARE(json.count(), 0);
+
+        json.resize(10);
+        QCOMPARE(json.count(), 10);
+
+        json.resize(5);
+        QCOMPARE(json.count(), 5);
+
+        json.resize(0);
+        QCOMPARE(json.count(), 0);
+    }
 };
 
 QTEST_APPLESS_MAIN(GJsonTest)

@@ -208,3 +208,36 @@ INSTANTIATE_TEST_CASE_P(, StringValueCastTest, ::testing::Values(
     _test("-12345678901234.5678901234567890", true, -12345678901234, -12345678901234.5678901234567890L)
 ));
 #undef _test
+
+class CountAndResizeSimpleTest : public ::testing::TestWithParam<mgjson::json_type>
+{
+};
+
+TEST_P(CountAndResizeSimpleTest, ConstructFromType)
+{
+    mgjson::json_type type = GetParam();
+    mgjson json(type);
+    EXPECT_EQ(json.type(), type);
+    EXPECT_EQ(json.count(), static_cast<size_t>(0));
+
+    json.resize(10);
+    EXPECT_EQ(json.count(), static_cast<size_t>(10));
+
+    json.resize(5);
+    EXPECT_EQ(json.count(), static_cast<size_t>(5));
+
+    json.resize(0);
+    EXPECT_EQ(json.count(), static_cast<size_t>(0));
+}
+
+INSTANTIATE_TEST_CASE_P(, CountAndResizeSimpleTest, ::testing::Values(
+    mgjson::Null,
+    mgjson::Bool,
+    mgjson::Integer,
+    mgjson::Double,
+    mgjson::String,
+    mgjson::Array,
+    mgjson::Object,
+    mgjson::Undefined
+));
+

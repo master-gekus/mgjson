@@ -8,7 +8,16 @@
 #include "mgjson.h"
 
 #ifndef QT_CORE_LIB
-char *qstrdup(const char *);
+char *qstrdup(const char *src)
+{
+    if (nullptr == src) {
+        return 0;
+    }
+    size_t len = strlen(src);
+    char *dest = new char[len + 1];
+    memcpy(dest, src, len + 1);
+    return dest;
+}
 
 int qstricmp(const char *str1, const char *str2)
 {
@@ -383,13 +392,13 @@ mgjson::to_string() const
 }
 
 const QByteArray&
-GJson::toByteArray() const
+mgjson::toByteArray() const
 {
     return d->str_value_;
 }
 
 QString
-GJson::toString() const
+mgjson::toString() const
 {
     /* We use fromUtf8(const char*, int) because fromUtf8(const QByteArray&) trancates
      * value by the first '\0'
@@ -400,3 +409,27 @@ GJson::toString() const
 
 #pragma message("TODO: Constructor form QVariant!")
 #endif
+
+#ifdef QT_CORE_LIB
+int
+#else
+size_t
+#endif
+mgjson::count() const
+{
+    if (Array != d->type_) {
+        return 0;
+    }
+    return static_cast<int>(d->array_.size());
+}
+
+void mgjson::resize(size_t new_size)
+{
+    if ((Array == d->type_) && (d->array_.size() == new_size)) {
+        return;
+    }
+    mgjson_private *data = d.data();
+    data->type_ = Array;
+    data->array_.resize(new_size);
+}
+
