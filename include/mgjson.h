@@ -221,7 +221,6 @@ public:
     inline T to() const { return (T) (*this); }
 
 public:
-
 #ifdef QT_CORE_LIB
     int
 #else

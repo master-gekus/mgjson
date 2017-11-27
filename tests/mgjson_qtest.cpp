@@ -308,7 +308,6 @@ private slots:
         _test(Object);
         _test(Undefined);
 #undef _test
-
     }
 
     void CountAndResizeSimple()
@@ -327,6 +326,96 @@ private slots:
 
         json.resize(0);
         QCOMPARE(json.count(), 0);
+    }
+
+    void ArrayAt()
+    {
+        GJson json;
+        json.resize(10);
+        QCOMPARE(json.count(), 10);
+
+        GJson json2;
+        json2 = json;
+        QCOMPARE(json2.count(), 10);
+
+        for (int i = 0; i < json.count(); i++) {
+            GJson j1 = json.at(i);
+            QCOMPARE(j1.type(), GJson::Null);
+
+            GJson& j2 = json2.at(i);
+            QCOMPARE(j2.type(), GJson::Null);
+
+            j2 = 1;
+            QCOMPARE(j2.type(), GJson::Integer);
+            QCOMPARE(j2.to<int>(), 1);
+
+            GJson j3 = json.at(i);
+            QCOMPARE(j3.type(), GJson::Null);
+
+            GJson& j4 = json2.at(i);
+            QCOMPARE(j4.type(), GJson::Integer);
+            QCOMPARE(j4.to<int>(), 1);
+        }
+
+        QVERIFY(static_cast<const GJson&>(json).at(11).isNull());
+        QVERIFY_EXCEPTION_THROWN(json2.at(11) = 1, std::out_of_range);
+    }
+
+    void ArrayAtAutoGrow()
+    {
+        GJson json;
+        QCOMPARE(json.count(), 0);
+        QVERIFY(static_cast<const GJson&>(json).at(0).isNull());
+
+        json.at(0) = 1;
+        QCOMPARE(json.count(), 1);
+        QCOMPARE(json.at(0).type(), GJson::Integer);
+        QCOMPARE(json.at(0).to<int>(), 1);
+        QVERIFY_EXCEPTION_THROWN(json.at(2) = 1, std::out_of_range);
+
+        json.at(1) = 2;
+        QCOMPARE(json.count(), 2);
+        QCOMPARE(json.at(1).type(), GJson::Integer);
+        QCOMPARE(json.at(1).to<int>(), 2);
+        QVERIFY_EXCEPTION_THROWN(json.at(3) = 1, std::out_of_range);
+
+        json.at(0) = "Test string";
+        QCOMPARE(json.count(), 2);
+        QCOMPARE(json.at(0).type(), GJson::String);
+        QCOMPARE(json.at(0).to<const char*>(), "Test string");
+        QCOMPARE(json.at(1).type(), GJson::Integer);
+        QCOMPARE(json.at(1).to<int>(), 2);
+    }
+
+    void ArrayAtException_data()
+    {
+        QTest::addColumn<GJson>("json");
+        QTest::addColumn<bool>("must_throw");
+#define _test(a,t) QTest::newRow(#a) << GJson(GJson::a) << t
+        _test(Null, false);
+        _test(Bool, true);
+        _test(Integer, true);
+        _test(Double, true);
+        _test(String, true);
+        _test(Array, false);
+        _test(Object, true);
+        _test(Undefined, false);
+#undef _test
+    }
+
+    void ArrayAtException()
+    {
+        QFETCH(GJson, json);
+        QFETCH(bool, must_throw);
+
+        if (must_throw) {
+            QVERIFY_EXCEPTION_THROWN(json.at(0) = 1, std::out_of_range);
+        } else {
+            json.at(0) = 1;
+            QCOMPARE(json.count(), 1);
+            QCOMPARE(json.at(0).type(), GJson::Integer);
+            QCOMPARE(json.at(0).to<int>(), 1);
+        }
     }
 };
 

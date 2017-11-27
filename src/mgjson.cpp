@@ -1,11 +1,12 @@
+#include "mgjson.h"
+
 #include <string>
 #include <cstring>
 #include <cstdlib>
 #include <map>
 #include <vector>
 #include <limits>
-
-#include "mgjson.h"
+#include <stdexcept>
 
 #ifndef QT_CORE_LIB
 char *qstrdup(const char *src)
@@ -433,3 +434,31 @@ void mgjson::resize(size_t new_size)
     data->array_.resize(new_size);
 }
 
+mgjson mgjson::at(size_t index) const
+{
+    const mgjson_private* data = d.data();
+    if ((Array != data->type_) || (data->array_.size() <= index)) {
+        return mgjson();
+    }
+    return data->array_.at(index);
+}
+
+mgjson& mgjson::at(size_t index)
+{
+    mgjson_private* data = d.data();
+    switch(data->type_) {
+    case Undefined:
+    case Null:
+        data->type_ = Array;
+    case Array:
+        break;
+    default:
+        throw std::out_of_range("can't use 'at' for json what is not an array.");
+    }
+
+    if (data->array_.size() == index) {
+        data->array_.push_back(mgjson());
+    }
+
+    return data->array_.at(index);
+}
