@@ -1,12 +1,14 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include "GJson.h"
+
 #include <ctime>
 #include <cmath>
 #include <limits>
 
 #include <QtTest>
-
-#include "GJson.h"
-
-#define SIMPLE_TEST_COUNT 10
 
 Q_DECLARE_METATYPE(GJson::Type)
 Q_DECLARE_METATYPE(GJsonParseError::ParseError)
@@ -415,6 +417,151 @@ private slots:
             QCOMPARE(json.count(), 1);
             QCOMPARE(json.at(0).type(), GJson::Integer);
             QCOMPARE(json.at(0).to<int>(), 1);
+        }
+    }
+
+    void ObjectAt()
+    {
+        GJson json;
+        QCOMPARE(json.count(), 0);
+
+        for (int i = 0; i < 10; i++) {
+            char key1[10];
+            sprintf(key1, "Key %d", i);
+            std::string key2(key1);
+            const GJson& cjson = json;
+            QVERIFY(cjson.at(key1).isNull());
+            QVERIFY(cjson.at(key2).isNull());
+            json.at(key1) = i;
+            QCOMPARE(json.count(), i + 1);
+            QVERIFY(cjson.at(key1).isInteger());
+            QVERIFY(cjson.at(key2).isInteger());
+            QCOMPARE(cjson.at(key1).to<int>(), i);
+            QCOMPARE(cjson.at(key2).to<int>(), i);
+        }
+        QCOMPARE(json.count(), 10);
+
+        GJson json2;
+        json2 = json;
+        for (int i = 10; i < 20; i++) {
+            char key1[10];
+            sprintf(key1, "Key %d", i);
+            std::string key2(key1);
+            const GJson& cjson = json2;
+            QVERIFY(cjson.at(key1).isNull());
+            QVERIFY(cjson.at(key2).isNull());
+            json2.at(key1) = key2;
+            QCOMPARE(json2.count(), i + 1);
+            QVERIFY(cjson.at(key1).isString());
+            QVERIFY(cjson.at(key2).isString());
+            QCOMPARE(cjson.at(key1).to<const char *>(), key1);
+            QCOMPARE(cjson.at(key2).to<const char *>(), key1);
+        }
+        QCOMPARE(json.count(), 10);
+        QCOMPARE(json2.count(), 20);
+
+        for (int i = 0; i < 10; i++) {
+            char key1[10];
+            sprintf(key1, "Key %d", i);
+            std::string key2(key1);
+            const GJson& cjson = json;
+            QVERIFY(!cjson.at(key1).isNull());
+            QVERIFY(!cjson.at(key2).isNull());
+            json.at(key1) = i + 10;
+            QVERIFY(cjson.at(key1).isInteger());
+            QVERIFY(cjson.at(key2).isInteger());
+            QCOMPARE(cjson.at(key1).to<int>(), i + 10);
+            QCOMPARE(cjson.at(key2).to<int>(), i + 10);
+        }
+        QCOMPARE(json.count(), 10);
+        QCOMPARE(json2.count(), 20);
+
+        for (int i = 0; i < 10; i++) {
+            char key1[10];
+            sprintf(key1, "Key %d", i);
+            GJson& element = json2.at(key1);
+            QVERIFY(element.isInteger());
+            QCOMPARE(element.to<int>(), i);
+            element = key1;
+            QVERIFY(static_cast<const GJson&>(json2).at(key1).isString());
+            QCOMPARE(static_cast<const GJson&>(json2).at(key1).to<const char *>(), key1);
+        }
+        QCOMPARE(json.count(), 10);
+        QCOMPARE(json2.count(), 20);
+
+        for (int i = 0; i < 10; i++) {
+            char key1[10];
+            sprintf(key1, "Key %d", i);
+            GJson element = json2.at(key1);
+            QVERIFY(element.isString());
+            QCOMPARE(element.to<const char*>(), key1);
+            element = i + 100;
+            QVERIFY(element.isInteger());
+            QCOMPARE(element.to<int>(), i + 100);
+            QVERIFY(json2.at(key1).isString());
+            QCOMPARE(json2.at(key1).to<const char *>(), key1);
+            QVERIFY(static_cast<const GJson&>(json2).at(key1).isString());
+            QCOMPARE(static_cast<const GJson&>(json2).at(key1).to<const char *>(), key1);
+        }
+        QCOMPARE(json.count(), 10);
+        QCOMPARE(json2.count(), 20);
+
+        // Qt special
+        for (int i = 0; i < 20; i++) {
+            QString key1 = QStringLiteral("Key %1").arg(i);
+            QByteArray key2 = QByteArrayLiteral("Key ") + QByteArray::number(i);
+            QCOMPARE(json2.at(key1).to<QString>(), key1);
+            QCOMPARE(json2.at(key2).to<QByteArray>(), key2);
+            const GJson& cjson = json2;
+            QCOMPARE(cjson.at(key1).to<QString>(), key1);
+            QCOMPARE(cjson.at(key2).to<QByteArray>(), key2);
+        }
+    }
+
+    void ObjectAtEmptyKey()
+    {
+        GJson json;
+        json["Test"] = 1;
+        QVERIFY(json.isObject());
+        QVERIFY(json["Test"].isInteger());
+        QCOMPARE(json["Test"].toInt(), 1);
+        QVERIFY_EXCEPTION_THROWN(json[nullptr] = 1, std::out_of_range);
+        QVERIFY_EXCEPTION_THROWN(json[""] = 1, std::out_of_range);
+
+        // Qt special
+        QVERIFY_EXCEPTION_THROWN(json[QByteArray()] = 1, std::out_of_range);
+        QVERIFY_EXCEPTION_THROWN(json[QString()] = 1, std::out_of_range);
+    }
+
+    void ObjectAtException_data()
+    {
+        QTest::addColumn<GJson>("json");
+        QTest::addColumn<bool>("must_throw");
+#define _test(a,t) QTest::newRow(#a) << GJson(GJson::a) << t
+        _test(Null, false);
+        _test(Bool, true);
+        _test(Integer, true);
+        _test(Double, true);
+        _test(String, true);
+        _test(Array, true);
+        _test(Object, false);
+        _test(Undefined, false);
+#undef _test
+    }
+
+    void ObjectAtException()
+    {
+        QFETCH(GJson, json);
+        QFETCH(bool, must_throw);
+        QCOMPARE(json.count(), 0);
+
+        if (must_throw) {
+            QVERIFY_EXCEPTION_THROWN(json.at("key") = 1, std::out_of_range);
+        } else {
+            json.at("key") = 1;
+            QCOMPARE(json.count(), 1);
+            QCOMPARE(json.at("key").type(), GJson::Integer);
+            QCOMPARE(json.at("key").to<int>(), 1);
         }
     }
 };

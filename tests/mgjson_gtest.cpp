@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <cmath>
 #include <limits>
 
@@ -241,13 +245,13 @@ INSTANTIATE_TEST_CASE_P(, CountAndResizeSimpleTest, ::testing::Values(
     mgjson::Undefined
 ));
 
-struct ArrayAt_param
+struct At_param
 {
     mgjson::json_type type;
     bool must_throw;
 };
 
-class ArrayAt : public ::testing::TestWithParam<ArrayAt_param>
+class ArrayAt : public ::testing::TestWithParam<At_param>
 {
 };
 
@@ -310,7 +314,7 @@ TEST_F(ArrayAt, AutoGrow)
     EXPECT_EQ(json.at(1).to<int>(), 2);
 }
 
-static constexpr const ArrayAt_param ArrayAt_params[] = {
+static constexpr const At_param ArrayAt_params[] = {
     {mgjson::Null, false},
     {mgjson::Bool, true},
     {mgjson::Integer, true},
@@ -325,7 +329,7 @@ INSTANTIATE_TEST_CASE_P(, ArrayAt, ::testing::ValuesIn(ArrayAt_params));
 
 TEST_P(ArrayAt, Exceptions)
 {
-    ArrayAt_param param = GetParam();
+    At_param param = GetParam();
     mgjson json(param.type);
 
     if (param.must_throw) {
@@ -335,5 +339,137 @@ TEST_P(ArrayAt, Exceptions)
         EXPECT_EQ(json.count(), 1U);
         EXPECT_EQ(json.at(static_cast<size_t>(0)).type(), mgjson::Integer);
         EXPECT_EQ(json.at(static_cast<size_t>(0)).to<int>(), 1);
+    }
+}
+
+class ObjectAt : public ::testing::TestWithParam<At_param>
+{
+};
+
+TEST_F(ObjectAt, Simple)
+{
+    mgjson json;
+    EXPECT_EQ(json.count(), 0u);
+
+    for (size_t i = 0; i < 10; i++) {
+        char key1[10];
+        sprintf(key1, "Key %d", static_cast<int>(i));
+        std::string key2(key1);
+        const mgjson& cjson = json;
+        EXPECT_TRUE(cjson.at(key1).is_null());
+        EXPECT_TRUE(cjson.at(key2).is_null());
+        json.at(key1) = i;
+        EXPECT_EQ(json.count(), i + 1U);
+        EXPECT_TRUE(cjson.at(key1).is_integer());
+        EXPECT_TRUE(cjson.at(key2).is_integer());
+        EXPECT_EQ(cjson.at(key1).to<int>(), static_cast<int>(i));
+        EXPECT_EQ(cjson.at(key2).to<int>(), static_cast<int>(i));
+    }
+    EXPECT_EQ(json.count(), 10U);
+
+    mgjson json2;
+    json2 = json;
+    for (size_t i = 10; i < 20; i++) {
+        char key1[10];
+        sprintf(key1, "Key %d", static_cast<int>(i));
+        std::string key2(key1);
+        const mgjson& cjson = json2;
+        EXPECT_TRUE(cjson.at(key1).is_null());
+        EXPECT_TRUE(cjson.at(key2).is_null());
+        json2.at(key1) = key2;
+        EXPECT_EQ(json2.count(), i + 1);
+        EXPECT_TRUE(cjson.at(key1).is_string());
+        EXPECT_TRUE(cjson.at(key2).is_string());
+        EXPECT_STREQ(cjson.at(key1).to<const char *>(), key1);
+        EXPECT_STREQ(cjson.at(key2).to<const char *>(), key1);
+    }
+    EXPECT_EQ(json.count(), 10U);
+    EXPECT_EQ(json2.count(), 20U);
+
+    for (size_t i = 0; i < 10; i++) {
+        char key1[10];
+        sprintf(key1, "Key %d", static_cast<int>(i));
+        std::string key2(key1);
+        const mgjson& cjson = json;
+        EXPECT_FALSE(cjson.at(key1).is_null());
+        EXPECT_FALSE(cjson.at(key2).is_null());
+        json.at(key1) = i + 10;
+        EXPECT_TRUE(cjson.at(key1).is_integer());
+        EXPECT_TRUE(cjson.at(key2).is_integer());
+        EXPECT_EQ(cjson.at(key1).to<int>(), static_cast<int>(i + 10));
+        EXPECT_EQ(cjson.at(key2).to<int>(), static_cast<int>(i + 10));
+    }
+    EXPECT_EQ(json.count(), 10U);
+    EXPECT_EQ(json2.count(), 20U);
+
+    for (size_t i = 0; i < 10; i++) {
+        char key1[10];
+        sprintf(key1, "Key %d", static_cast<int>(i));
+        mgjson& element = json2.at(key1);
+        EXPECT_TRUE(element.is_integer());
+        EXPECT_EQ(element.to<int>(), static_cast<int>(i));
+        element = key1;
+        EXPECT_TRUE(static_cast<const mgjson&>(json2).at(key1).is_string());
+        EXPECT_STREQ(static_cast<const mgjson&>(json2).at(key1).to<const char *>(), key1);
+    }
+    EXPECT_EQ(json.count(), 10U);
+    EXPECT_EQ(json2.count(), 20U);
+
+    for (size_t i = 0; i < 10; i++) {
+        char key1[10];
+        sprintf(key1, "Key %d", static_cast<int>(i));
+        mgjson element = json2.at(key1);
+        EXPECT_TRUE(element.is_string());
+        EXPECT_STREQ(element.to<const char*>(), key1);
+        element = i + 100;
+        EXPECT_TRUE(element.is_integer());
+        EXPECT_EQ(element.to<int>(), static_cast<int>(i + 100));
+        EXPECT_TRUE(json2.at(key1).is_string());
+        EXPECT_STREQ(json2.at(key1).to<const char *>(), key1);
+        EXPECT_TRUE(static_cast<const mgjson&>(json2).at(key1).is_string());
+        EXPECT_STREQ(static_cast<const mgjson&>(json2).at(key1).to<const char *>(), key1);
+    }
+    EXPECT_EQ(json.count(), 10U);
+    EXPECT_EQ(json2.count(), 20U);
+}
+
+TEST_F(ObjectAt, EmptyKey)
+{
+    mgjson json;
+    json["Test"] = 1;
+    EXPECT_TRUE(json.is_object());
+    EXPECT_EQ(json.count(), 1U);
+    EXPECT_TRUE(json["Test"].is_integer());
+    EXPECT_EQ(json["Test"].to_int(), 1);
+    EXPECT_THROW(json[nullptr] = 1, std::out_of_range);
+    EXPECT_THROW(json[""] = 1, std::out_of_range);
+}
+
+static constexpr const At_param ObjectAt_params[] = {
+    {mgjson::Null, false},
+    {mgjson::Bool, true},
+    {mgjson::Integer, true},
+    {mgjson::Double, true},
+    {mgjson::String, true},
+    {mgjson::Array, true},
+    {mgjson::Object, false},
+    {mgjson::Undefined, false},
+};
+
+INSTANTIATE_TEST_CASE_P(, ObjectAt, ::testing::ValuesIn(ObjectAt_params));
+
+TEST_P(ObjectAt, Exceptions)
+{
+    At_param param = GetParam();
+    mgjson json(param.type);
+    EXPECT_EQ(json.count(), 0U);
+
+    if (param.must_throw) {
+        EXPECT_THROW(json.at("key") = 1, std::out_of_range);
+    } else {
+        json.at("key") = 1;
+        EXPECT_EQ(json.count(), 1U);
+        EXPECT_EQ(json.at("key").type(), mgjson::Integer);
+        EXPECT_EQ(json.at("key").to<int>(), 1);
     }
 }

@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "mgjson.h"
 
 #include <string>
@@ -7,6 +11,7 @@
 #include <vector>
 #include <limits>
 #include <stdexcept>
+#include <cassert>
 
 #ifndef QT_CORE_LIB
 char *qstrdup(const char *src)
@@ -148,6 +153,14 @@ public:
         _update_values_from_string();
     }
 
+    void check_key_is_empty(const char *key) const
+    {
+        if ((nullptr == key) || (0 == strlen(key))) {
+            throw std::out_of_range("mgjson::at(key) key can't be empty!");
+        }
+    }
+
+
 private:
     void _update_values_from_string()
     {
@@ -207,10 +220,23 @@ private:
 
 public:
     struct Key {
+        explicit Key(const char* key) :
+            d(qstrdup(key))
+        {
+            assert(nullptr != key);
+        }
+
         explicit Key(const Key& other) :
             d(qstrdup(other.d))
         {
+            assert(nullptr != other.d);
+        }
 
+        explicit Key(Key&& other) :
+            d(other.d)
+        {
+            assert(nullptr != other.d);
+            other.d = nullptr;
         }
 
         ~Key()
@@ -418,23 +444,30 @@ size_t
 #endif
 mgjson::count() const
 {
-    if (Array != d->type_) {
+    switch(d->type_) {
+    case Array:
+        return static_cast<decltype(count())>(d->array_.size());
+    case Object:
+        return static_cast<decltype(count())>(d->map_.size());
+    default:
         return 0;
     }
-    return static_cast<int>(d->array_.size());
 }
 
-void mgjson::resize(size_t new_size)
+void
+mgjson::resize(size_t new_size)
 {
     if ((Array == d->type_) && (d->array_.size() == new_size)) {
         return;
     }
     mgjson_private *data = d.data();
     data->type_ = Array;
+    data->map_.clear();
     data->array_.resize(new_size);
 }
 
-mgjson mgjson::at(size_t index) const
+mgjson
+mgjson::at(size_t index) const
 {
     const mgjson_private* data = d.data();
     if ((Array != data->type_) || (data->array_.size() <= index)) {
@@ -443,7 +476,8 @@ mgjson mgjson::at(size_t index) const
     return data->array_.at(index);
 }
 
-mgjson& mgjson::at(size_t index)
+mgjson&
+mgjson::at(size_t index)
 {
     mgjson_private* data = d.data();
     switch(data->type_) {
@@ -453,7 +487,7 @@ mgjson& mgjson::at(size_t index)
     case Array:
         break;
     default:
-        throw std::out_of_range("can't use 'at' for json what is not an array.");
+        throw std::out_of_range("mgjson::at(index) can't be used for json what is not an array.");
     }
 
     if (data->array_.size() == index) {
@@ -461,4 +495,42 @@ mgjson& mgjson::at(size_t index)
     }
 
     return data->array_.at(index);
+}
+
+mgjson
+mgjson::at(const char* key) const
+{
+    const mgjson_private* data = d.data();
+
+    data->check_key_is_empty(key);
+
+    if (Object != data->type_) {
+        return mgjson();
+    }
+
+    auto it = data->map_.find(*((const mgjson_private::Key*)(&key)));
+    if (data->map_.end() == it) {
+        return mgjson();
+    }
+    return it->second;
+}
+
+mgjson&
+mgjson::at(const char* key)
+{
+    mgjson_private* data = d.data();
+
+    data->check_key_is_empty(key);
+
+    switch(data->type_) {
+    case Undefined:
+    case Null:
+    case Object:
+        break;
+    default:
+        throw std::out_of_range("mgjson::at(key) can't be used for json what is not an object.");
+    }
+    data->type_ = Object;
+    data->array_.clear();
+    return data->map_[mgjson_private::Key(key)];
 }
