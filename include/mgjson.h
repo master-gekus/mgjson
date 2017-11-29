@@ -19,6 +19,8 @@
 #   define _mgjson_declare_operators_for_flags(Flags)
 #endif  // QT_CORE_LIB
 
+#include <type_traits>
+
 class mgjson_private;
 class mgjson
 {
@@ -198,27 +200,21 @@ public:
     QVariant toVariant() const;
 #endif
 
-    inline operator bool () const { return to_bool(); }
-    inline operator int () const { return to_int(); }
-    inline operator unsigned int () const { return to_uint(); }
-    inline operator long long () const { return to_longlong(); }
-    inline operator unsigned long long () const { return to_ulonglong(); }
-    inline operator float () const { return to_float(); }
-    inline operator double () const { return to_double(); }
-    inline operator const char* () const { return to_str(); }
-    inline operator std::string () const { return to_string(); }
+public:
+    template <typename T>
+    typename std::enable_if<std::is_integral<T>::value, T>::type
+    to() const {return static_cast<T>(to_ulonglong());}
 
-#ifndef QT_CORE_LIB
-    inline operator const std::string& () const { return to_string(); }
-#else
-    inline operator QByteArray () const { return toByteArray(); }
-    inline operator const QByteArray& () const { return toByteArray(); }
-    inline operator QString () const { return toString(); }
-    inline operator QVariant () const { return toVariant(); }
-#endif
+    template <typename T>
+    typename std::enable_if<std::is_floating_point<T>::value, T>::type
+    to() const {return static_cast<T>(to_longdouble());}
 
-    template<typename T>
-    inline T to() const { return (T) (*this); }
+    template <typename T>
+    typename std::enable_if<(!std::is_integral<T>::value) && (!std::is_floating_point<T>::value), T>::type
+    to() const;
+
+    template <typename T>
+    inline operator T () const {return to<T>();}
 
 public:
 #ifdef QT_CORE_LIB
@@ -372,19 +368,49 @@ typedef mgjson GJson;
 //};
 
 template<>
-inline QString mgjson::to() const
+inline QString mgjson::to<QString>() const
 {
-  return static_cast<const GJson*>(this)->toString();
+  return toString();
 }
 
 template<>
-inline QByteArray mgjson::to() const
+inline QByteArray mgjson::to<QByteArray>() const
 {
-  return static_cast<const GJson*>(this)->toByteArray();
+  return toByteArray();
+}
+
+template<>
+inline const QByteArray& mgjson::to<const QByteArray&>() const
+{
+  return toByteArray();
 }
 
 Q_DECLARE_METATYPE(mgjson)
 
+#else  // QT_CORE_LIB
+template <>
+inline const std::string& mgjson::to<const std::string&>() const
+{
+    return to_string();
+}
 #endif  // QT_CORE_LIB
+
+template <>
+inline bool mgjson::to<bool>() const
+{
+    return to_bool();
+}
+
+template <>
+inline const char* mgjson::to<const char*>() const
+{
+    return to_str();
+}
+
+template <>
+inline std::string mgjson::to<std::string>() const
+{
+    return to_string();
+}
 
 #endif // _MGJSON_H_INCLUDED_

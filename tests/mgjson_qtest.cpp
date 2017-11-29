@@ -244,7 +244,60 @@ private slots:
         QCOMPARE(json2.toString().size(), static_cast<int>(sizeof(test_string_data) - 1));
     }
 
-    // StringValueCast
+#define CONVERSION_TEST(n,t,v) \
+    void ConvertionTest_##n() \
+    { \
+        t value = v; \
+        GJson json(value); \
+        QCOMPARE(json.to<t>(), value); \
+        QCOMPARE(static_cast<t>(json), value); \
+    }
+
+    CONVERSION_TEST(bool_t, bool, true)
+    CONVERSION_TEST(bool_f, bool, false)
+    CONVERSION_TEST(char, char, 1)
+    CONVERSION_TEST(uchar, unsigned char, 1)
+    CONVERSION_TEST(short, short, 1)
+    CONVERSION_TEST(ushort, unsigned short, 1)
+    CONVERSION_TEST(int, int, 1)
+    CONVERSION_TEST(uint, unsigned int, 1)
+    CONVERSION_TEST(long, long, 1)
+    CONVERSION_TEST(ulong, unsigned long, 1)
+    CONVERSION_TEST(size_t, size_t, 1)
+    CONVERSION_TEST(intptr_t, intptr_t, 1)
+    CONVERSION_TEST(uintptr_t, uintptr_t, 1)
+    CONVERSION_TEST(string, const  char*, "Test string")
+
+    void ConvertionTest_std_string()
+    {
+        std::string value = "Test string";
+        GJson json(value);
+        QCOMPARE(json.to<std::string>(), value);
+    }
+
+    void ConvertionTest_QString()
+    {
+        QString value = QStringLiteral("Test string");
+        GJson json(value);
+        QCOMPARE(json.to<QString>(), value);
+    }
+
+    void ConvertionTest_QByteArray()
+    {
+        QByteArray value = QByteArrayLiteral("Test string");
+        GJson json(value);
+        QCOMPARE(json.to<QByteArray>(), value);
+    }
+
+    void ConvertionTest_QByteArray_ref()
+    {
+        QByteArray value = QByteArrayLiteral("Test string");
+        GJson json(value);
+        QCOMPARE(json.to<const QByteArray&>(), value);
+        QCOMPARE(static_cast<const QByteArray&>(json), value);
+    }
+
+// StringValueCast
     void StringValueCast_data()
     {
         QTest::addColumn<QByteArray>("string");

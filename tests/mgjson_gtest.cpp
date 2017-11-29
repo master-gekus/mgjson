@@ -146,6 +146,52 @@ TEST(ConstructorFromValue, StdStringWithZeros)
     EXPECT_EQ(json2.to_string().size(), sizeof(test_string_data) - 1);
 }
 
+#define CONVERSION_TEST(n,t,v) \
+    TEST(ConvertionTest, n) \
+    { \
+        t value = v; \
+        mgjson json(value); \
+        EXPECT_EQ(json.to<t>(), value); \
+        EXPECT_EQ(static_cast<t>(json), value); \
+    }
+
+CONVERSION_TEST(bool_t, bool, true)
+CONVERSION_TEST(bool_f, bool, false)
+CONVERSION_TEST(char, char, 1)
+CONVERSION_TEST(uchar, unsigned char, 1)
+CONVERSION_TEST(short, short, 1)
+CONVERSION_TEST(ushort, unsigned short, 1)
+CONVERSION_TEST(int, int, 1)
+CONVERSION_TEST(uint, unsigned int, 1)
+CONVERSION_TEST(long, long, 1)
+CONVERSION_TEST(ulong, unsigned long, 1)
+CONVERSION_TEST(size_t, size_t, 1)
+CONVERSION_TEST(intptr_t, intptr_t, 1)
+CONVERSION_TEST(uintptr_t, uintptr_t, 1)
+
+TEST(ConvertionTest, string)
+{
+    const char* value = "Test string";
+    mgjson json(value);
+    EXPECT_STREQ(json.to<const char*>(), value);
+    EXPECT_STREQ(static_cast<const char*>(json), value);
+}
+
+TEST(ConvertionTest, std_string)
+{
+    std::string value = "Test string";
+    mgjson json(value);
+    EXPECT_EQ(json.to<std::string>(), value);
+}
+
+TEST(ConvertionTest, std_string_ref)
+{
+    std::string value = "Test string";
+    mgjson json(value);
+    EXPECT_EQ(json.to<const std::string&>(), value);
+    EXPECT_EQ(static_cast<const std::string&>(json), value);
+}
+
 struct StringValueCastParam
 {
     std::string str_;
