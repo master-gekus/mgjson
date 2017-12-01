@@ -291,13 +291,35 @@ INSTANTIATE_TEST_CASE_P(, CountAndResizeSimpleTest, ::testing::Values(
     mgjson::Undefined
 ));
 
-struct At_param
+struct test_exception_param
 {
     mgjson::json_type type;
     bool must_throw;
 };
 
-class ArrayAt : public ::testing::TestWithParam<At_param>
+static constexpr const test_exception_param ArrayExeption_params[] = {
+    {mgjson::Null, false},
+    {mgjson::Bool, true},
+    {mgjson::Integer, true},
+    {mgjson::Double, true},
+    {mgjson::String, true},
+    {mgjson::Array, false},
+    {mgjson::Object, true},
+    {mgjson::Undefined, false},
+};
+
+static constexpr const test_exception_param ObjectException_params[] = {
+    {mgjson::Null, false},
+    {mgjson::Bool, true},
+    {mgjson::Integer, true},
+    {mgjson::Double, true},
+    {mgjson::String, true},
+    {mgjson::Array, true},
+    {mgjson::Object, false},
+    {mgjson::Undefined, false},
+};
+
+class ArrayAt : public ::testing::TestWithParam<test_exception_param>
 {
 };
 
@@ -360,26 +382,15 @@ TEST_F(ArrayAt, AutoGrow)
     EXPECT_EQ(json.at(1).to<int>(), 2);
 }
 
-static constexpr const At_param ArrayAt_params[] = {
-    {mgjson::Null, false},
-    {mgjson::Bool, true},
-    {mgjson::Integer, true},
-    {mgjson::Double, true},
-    {mgjson::String, true},
-    {mgjson::Array, false},
-    {mgjson::Object, true},
-    {mgjson::Undefined, false},
-};
-
-INSTANTIATE_TEST_CASE_P(, ArrayAt, ::testing::ValuesIn(ArrayAt_params));
+INSTANTIATE_TEST_CASE_P(, ArrayAt, ::testing::ValuesIn(ArrayExeption_params));
 
 TEST_P(ArrayAt, Exceptions)
 {
-    At_param param = GetParam();
+    test_exception_param param = GetParam();
     mgjson json(param.type);
 
     if (param.must_throw) {
-        EXPECT_THROW(json.at(static_cast<size_t>(0)) = 1, std::out_of_range);
+        EXPECT_THROW(json.at(static_cast<size_t>(0)) = 1, std::invalid_argument);
     } else {
         json.at(static_cast<size_t>(0)) = 1;
         EXPECT_EQ(json.count(), 1U);
@@ -388,7 +399,7 @@ TEST_P(ArrayAt, Exceptions)
     }
 }
 
-class ObjectAt : public ::testing::TestWithParam<At_param>
+class ObjectAt : public ::testing::TestWithParam<test_exception_param>
 {
 };
 
@@ -491,27 +502,16 @@ TEST_F(ObjectAt, EmptyKey)
     EXPECT_THROW(json[""] = 1, std::out_of_range);
 }
 
-static constexpr const At_param ObjectAt_params[] = {
-    {mgjson::Null, false},
-    {mgjson::Bool, true},
-    {mgjson::Integer, true},
-    {mgjson::Double, true},
-    {mgjson::String, true},
-    {mgjson::Array, true},
-    {mgjson::Object, false},
-    {mgjson::Undefined, false},
-};
-
-INSTANTIATE_TEST_CASE_P(, ObjectAt, ::testing::ValuesIn(ObjectAt_params));
+INSTANTIATE_TEST_CASE_P(, ObjectAt, ::testing::ValuesIn(ObjectException_params));
 
 TEST_P(ObjectAt, Exceptions)
 {
-    At_param param = GetParam();
+    test_exception_param param = GetParam();
     mgjson json(param.type);
     EXPECT_EQ(json.count(), 0U);
 
     if (param.must_throw) {
-        EXPECT_THROW(json.at("key") = 1, std::out_of_range);
+        EXPECT_THROW(json.at("key") = 1, std::invalid_argument);
     } else {
         json.at("key") = 1;
         EXPECT_EQ(json.count(), 1U);
@@ -572,3 +572,114 @@ TEST_P(Keys, Keys)
     }
     EXPECT_EQ(json.keys(), dst);
 }
+
+class PushBack : public ::testing::TestWithParam<test_exception_param>
+{
+};
+
+TEST_F(PushBack, Simple)
+{
+    mgjson json;
+    EXPECT_TRUE(json.is_null());
+
+    for (size_t i = 0; i < 10; i++) {
+        mgjson &j1 = json.push_back();
+        EXPECT_TRUE(json.is_array());
+        EXPECT_EQ(json.count(), static_cast<size_t>(i * 2 + 1));
+        EXPECT_TRUE(j1.is_null());
+        EXPECT_TRUE(json[i * 2].is_null());
+        j1 = i;
+        EXPECT_TRUE(json[i * 2].is_integer());
+        EXPECT_EQ(json[i * 2].to<size_t>(), i);
+        json[i * 2] = "Test string";
+        EXPECT_TRUE(j1.is_string());
+        EXPECT_STREQ(j1.to<const char*>(), "Test string");
+
+        mgjson &j2 = json.push_back("Test string 2");
+        EXPECT_EQ(json.count(), static_cast<size_t>(i * 2 + 2));
+        EXPECT_TRUE(j2.is_string());
+        EXPECT_TRUE(json[i * 2 + 1].is_string());
+        EXPECT_STREQ(j2.to<const char*>(), "Test string 2");
+        EXPECT_STREQ(json[i * 2 + 1].to<const char*>(), "Test string 2");
+
+        j2 = i * 10;
+        EXPECT_TRUE(json[i * 2 + 1].is_integer());
+        EXPECT_EQ(json[i * 2 + 1].to<size_t>(), i * 10);
+        json[i * 2 + 1] = "Test string";
+        EXPECT_TRUE(j2.is_string());
+        EXPECT_STREQ(j2.to<const char*>(), "Test string");
+    }
+}
+
+INSTANTIATE_TEST_CASE_P(, PushBack, ::testing::ValuesIn(ArrayExeption_params));
+
+TEST_P(PushBack, Exceptions)
+{
+    test_exception_param param = GetParam();
+    mgjson json(param.type);
+
+    if (param.must_throw) {
+        EXPECT_THROW(json.push_back(1), std::invalid_argument);
+    } else {
+        json.push_back(1) = 1;
+        EXPECT_EQ(json.count(), 1U);
+        EXPECT_EQ(json.at(static_cast<size_t>(0)).type(), mgjson::Integer);
+        EXPECT_EQ(json.at(static_cast<size_t>(0)).to<int>(), 1);
+    }
+}
+
+class PushFront : public ::testing::TestWithParam<test_exception_param>
+{
+};
+
+TEST_F(PushFront, Simple)
+{
+    mgjson json;
+    EXPECT_TRUE(json.is_null());
+
+    for (size_t i = 0; i < 10; i++) {
+        mgjson &j1 = json.push_front();
+        EXPECT_TRUE(json.is_array());
+        EXPECT_EQ(json.count(), static_cast<size_t>(i * 2 + 1));
+        EXPECT_TRUE(j1.is_null());
+        EXPECT_TRUE(json[static_cast<size_t>(0)].is_null());
+        j1 = i;
+        EXPECT_TRUE(json[static_cast<size_t>(0)].is_integer());
+        EXPECT_EQ(json[static_cast<size_t>(0)].to<size_t>(), i);
+        json[static_cast<size_t>(0)] = "Test string";
+        EXPECT_TRUE(j1.is_string());
+        EXPECT_STREQ(j1.to<const char*>(), "Test string");
+
+        mgjson &j2 = json.push_front("Test string 2");
+        EXPECT_EQ(json.count(), static_cast<size_t>(i * 2 + 2));
+        EXPECT_TRUE(j2.is_string());
+        EXPECT_TRUE(json[static_cast<size_t>(0)].is_string());
+        EXPECT_STREQ(j2.to<const char*>(), "Test string 2");
+        EXPECT_STREQ(json[static_cast<size_t>(0)].to<const char*>(), "Test string 2");
+
+        j2 = i * 10;
+        EXPECT_TRUE(json[static_cast<size_t>(0)].is_integer());
+        EXPECT_EQ(json[static_cast<size_t>(0)].to<size_t>(), i * 10);
+        json[static_cast<size_t>(0)] = "Test string";
+        EXPECT_TRUE(j2.is_string());
+        EXPECT_STREQ(j2.to<const char*>(), "Test string");
+    }
+}
+
+INSTANTIATE_TEST_CASE_P(, PushFront, ::testing::ValuesIn(ArrayExeption_params));
+
+TEST_P(PushFront, Exceptions)
+{
+    test_exception_param param = GetParam();
+    mgjson json(param.type);
+
+    if (param.must_throw) {
+        EXPECT_THROW(json.push_front(1), std::invalid_argument);
+    } else {
+        json.push_front(1) = 1;
+        EXPECT_EQ(json.count(), 1U);
+        EXPECT_EQ(json.at(static_cast<size_t>(0)).type(), mgjson::Integer);
+        EXPECT_EQ(json.at(static_cast<size_t>(0)).to<int>(), 1);
+    }
+}
+

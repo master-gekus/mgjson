@@ -153,13 +153,25 @@ public:
         _update_values_from_string();
     }
 
-    void check_key_is_empty(const char *key) const
+    inline void check_key_is_empty(const char *key) const
     {
         if ((nullptr == key) || (0 == strlen(key))) {
             throw std::out_of_range("mgjson::at(key) key can't be empty!");
         }
     }
 
+    inline bool switch_to_array()
+    {
+        switch(type_) {
+        case mgjson::Undefined:
+        case mgjson::Null:
+            type_ = mgjson::Array;
+        case mgjson::Array:
+            return true;
+        default:
+            return false;
+        }
+    }
 
 private:
     void _update_values_from_string()
@@ -480,14 +492,8 @@ mgjson&
 mgjson::at(size_t index)
 {
     mgjson_private* data = d.data();
-    switch(data->type_) {
-    case Undefined:
-    case Null:
-        data->type_ = Array;
-    case Array:
-        break;
-    default:
-        throw std::out_of_range("mgjson::at(index) can't be used for json what is not an array.");
+    if (!data->switch_to_array()) {
+        throw std::invalid_argument("mgjson::at(index) can't be used for json what is not an array.");
     }
 
     if (data->array_.size() == index) {
@@ -528,7 +534,7 @@ mgjson::at(const char* key)
     case Object:
         break;
     default:
-        throw std::out_of_range("mgjson::at(key) can't be used for json what is not an object.");
+        throw std::invalid_argument("mgjson::at(key) can't be used for json what is not an object.");
     }
     data->type_ = Object;
     data->array_.clear();
@@ -564,3 +570,26 @@ mgjson::keys() const
     return res;
 }
 #endif
+
+mgjson&
+mgjson::push_back(const mgjson& value)
+{
+    mgjson_private* data = d.data();
+    if (!data->switch_to_array()) {
+        throw std::invalid_argument("mgjson::push_back can't be used for json what is not an array.");
+    }
+
+    data->array_.push_back(value);
+    return data->array_.back();
+}
+
+mgjson&
+mgjson::push_front(const mgjson& value)
+{
+    mgjson_private* data = d.data();
+    if (!data->switch_to_array()) {
+        throw std::invalid_argument("mgjson::push_front can't be used for json what is not an array.");
+    }
+
+    return *(data->array_.insert(data->array_.begin(), value));
+}

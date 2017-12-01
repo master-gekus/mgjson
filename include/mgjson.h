@@ -204,11 +204,11 @@ public:
 public:
     template <typename T>
     typename std::enable_if<std::is_integral<T>::value, T>::type
-    to() const {return static_cast<T>(to_ulonglong());}
+    inline to() const {return static_cast<T>(to_ulonglong());}
 
     template <typename T>
     typename std::enable_if<std::is_floating_point<T>::value, T>::type
-    to() const {return static_cast<T>(to_longdouble());}
+    inline to() const {return static_cast<T>(to_longdouble());}
 
     template <typename T>
     typename std::enable_if<(!std::is_integral<T>::value) && (!std::is_floating_point<T>::value), T>::type
@@ -266,8 +266,10 @@ public:
 #endif
 
 public:
-    void append(const mgjson& value);
-    void prepend(const mgjson& value);
+    mgjson& push_back(const mgjson& value);
+    mgjson& push_front(const mgjson& value);
+    inline mgjson& push_back() {return push_back(mgjson());}
+    inline mgjson& push_front() {return push_front(mgjson());}
 
     void remove(size_t index);
     void remove(const char* key);
@@ -278,6 +280,11 @@ public:
     inline mgjson take(const std::string& key) { return take(key.c_str()); }
 
 #ifdef QT_CORE_LIB
+    inline mgjson& append(const mgjson& value) {return push_back(value);}
+    inline mgjson& prepend(const mgjson& value) {return push_front(value);}
+    inline mgjson& append() {return push_back(mgjson());}
+    inline mgjson& prepend() {return push_front(mgjson());}
+
     inline void removeAt(int index) { mgjson::remove(static_cast<size_t>(index)); }
     inline void removeAt(const char* key) { mgjson::remove(key); }
     inline void removeAt(const std::string& key) { mgjson::remove(key.c_str()); }

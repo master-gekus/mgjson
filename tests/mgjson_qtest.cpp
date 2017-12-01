@@ -464,7 +464,7 @@ private slots:
         QFETCH(bool, must_throw);
 
         if (must_throw) {
-            QVERIFY_EXCEPTION_THROWN(json.at(0) = 1, std::out_of_range);
+            QVERIFY_EXCEPTION_THROWN(json.at(0) = 1, std::invalid_argument);
         } else {
             json.at(0) = 1;
             QCOMPARE(json.count(), 1);
@@ -609,7 +609,7 @@ private slots:
         QCOMPARE(json.count(), 0);
 
         if (must_throw) {
-            QVERIFY_EXCEPTION_THROWN(json.at("key") = 1, std::out_of_range);
+            QVERIFY_EXCEPTION_THROWN(json.at("key") = 1, std::invalid_argument);
         } else {
             json.at("key") = 1;
             QCOMPARE(json.count(), 1);
@@ -654,6 +654,116 @@ private slots:
         }
 
         QCOMPARE(json.keys(), dst);
+    }
+
+    void Append()
+    {
+        GJson json;
+        QVERIFY(json.isNull());
+
+        for (int i = 0; i < 10; i++) {
+            GJson &j1 = json.append();
+            QVERIFY(json.isArray());
+            QCOMPARE(json.count(), i * 2 + 1);
+            QVERIFY(j1.isNull());
+            QVERIFY(json[i * 2].isNull());
+            j1 = i;
+            QVERIFY(json[i * 2].isInteger());
+            QCOMPARE(json[i * 2].to<int>(), i);
+            json[i * 2] = "Test string";
+            QVERIFY(j1.isString());
+            QCOMPARE(j1.to<const char*>(), "Test string");
+
+            GJson &j2 = json.append("Test string 2");
+            QCOMPARE(json.count(), i * 2 + 2);
+            QVERIFY(j2.isString());
+            QVERIFY(json[i * 2 + 1].isString());
+            QCOMPARE(j2.to<const char*>(), "Test string 2");
+            QCOMPARE(json[i * 2 + 1].to<const char*>(), "Test string 2");
+
+            j2 = i * 10;
+            QVERIFY(json[i * 2 + 1].isInteger());
+            QCOMPARE(json[i * 2 + 1].to<int>(), i * 10);
+            json[i * 2 + 1] = "Test string";
+            QVERIFY(j2.isString());
+            QCOMPARE(j2.to<const char*>(), "Test string");
+        }
+    }
+
+    void AppendException_data()
+    {
+        ArrayAtException_data();
+    }
+
+    void AppendException()
+    {
+        QFETCH(GJson, json);
+        QFETCH(bool, must_throw);
+        QCOMPARE(json.count(), 0);
+
+        if (must_throw) {
+            QVERIFY_EXCEPTION_THROWN(json.append(1), std::invalid_argument);
+        } else {
+            json.append(1);
+            QCOMPARE(json.count(), 1);
+            QVERIFY(json[0].isInteger());
+            QCOMPARE(json[0].to<int>(), 1);
+        }
+    }
+
+    void Prepend()
+    {
+        GJson json;
+        QVERIFY(json.isNull());
+
+        for (int i = 0; i < 10; i++) {
+            GJson &j1 = json.prepend();
+            QVERIFY(json.isArray());
+            QCOMPARE(json.count(), i * 2 + 1);
+            QVERIFY(j1.isNull());
+            QVERIFY(json[0].isNull());
+            j1 = i;
+            QVERIFY(json[0].isInteger());
+            QCOMPARE(json[0].to<int>(), i);
+            json[0] = "Test string";
+            QVERIFY(j1.isString());
+            QCOMPARE(j1.to<const char*>(), "Test string");
+
+            GJson &j2 = json.prepend("Test string 2");
+            QCOMPARE(json.count(), i * 2 + 2);
+            QVERIFY(j2.isString());
+            QVERIFY(json[0].isString());
+            QCOMPARE(j2.to<const char*>(), "Test string 2");
+            QCOMPARE(json[0].to<const char*>(), "Test string 2");
+
+            j2 = i * 10;
+            QVERIFY(json[0].isInteger());
+            QCOMPARE(json[0].to<int>(), i * 10);
+            json[0] = "Test string";
+            QVERIFY(j2.isString());
+            QCOMPARE(j2.to<const char*>(), "Test string");
+        }
+    }
+
+    void PrependException_data()
+    {
+        ArrayAtException_data();
+    }
+
+    void PrependException()
+    {
+        QFETCH(GJson, json);
+        QFETCH(bool, must_throw);
+        QCOMPARE(json.count(), 0);
+
+        if (must_throw) {
+            QVERIFY_EXCEPTION_THROWN(json.prepend(1), std::invalid_argument);
+        } else {
+            json.prepend(1);
+            QCOMPARE(json.count(), 1);
+            QVERIFY(json[0].isInteger());
+            QCOMPARE(json[0].to<int>(), 1);
+        }
     }
 };
 
