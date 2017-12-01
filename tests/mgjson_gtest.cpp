@@ -2,12 +2,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include "mgjson.h"
+
 #include <cmath>
 #include <limits>
 
 #include <gtest/gtest.h>
-
-#include "mgjson.h"
 
 ::std::ostream& operator<<(::std::ostream& os, const mgjson::json_type& type)
 {
@@ -518,4 +518,57 @@ TEST_P(ObjectAt, Exceptions)
         EXPECT_EQ(json.at("key").type(), mgjson::Integer);
         EXPECT_EQ(json.at("key").to<int>(), 1);
     }
+}
+
+struct Keys_param
+{
+    std::vector<std::string> src;
+    std::vector<std::string> dst;
+};
+
+std::ostream& operator << (std::ostream& os, const Keys_param& param)
+{
+    os << testing::PrintToString(param.src);
+    return os;
+}
+
+class Keys : public ::testing::TestWithParam<Keys_param>
+{
+};
+
+static const Keys_param Keys_params[] ={
+    {{}, {}},
+    {{"Key"}, {}},
+    {{"Key", "Key"}, {}},
+    {{"Key 0", "Key 1"}, {"Key 0", "Key 1"}},
+    {{"Key 1", "Key 0"}, {"Key 0", "Key 1"}},
+    {{"Key 0", "Key 1", "Key 0"}, {"Key 0", "Key 1"}},
+    {{"Key 1", "Key 0", "Key 1"}, {"Key 0", "Key 1"}},
+    {{"Key 0", "Key 1", "Key 0", "Key 2", "Key 4", "Key 3", "Key 2"}, {}},
+};
+
+INSTANTIATE_TEST_CASE_P(, Keys, ::testing::ValuesIn(Keys_params));
+
+TEST_P(Keys, Keys)
+{
+    Keys_param param = GetParam();
+    std::vector<std::string> dst;
+    if (param.dst.empty()) {
+        std::set<std::string> dst_set;
+        for (const auto& key : param.src) {
+            dst_set.insert(key);
+        }
+        for (const auto& key : dst_set) {
+            dst.push_back(key);
+        }
+    } else {
+        dst = param.dst;
+    }
+
+    mgjson json;
+    int value = 1;
+    for (const auto& key : param.src) {
+        json[key] = value++;
+    }
+    EXPECT_EQ(json.keys(), dst);
 }

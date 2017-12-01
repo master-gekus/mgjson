@@ -14,6 +14,7 @@
 #else   // QT_CORE_LIB
 #   include <string>
 #   include <list>
+#   include <vector>
 #   include "mgjson_shared_data.h"
 #   define _mgjson_declare_flags(Flags, Enum) typedef unsigned int Flags;
 #   define _mgjson_declare_operators_for_flags(Flags)
@@ -240,6 +241,8 @@ public:
     inline mgjson& at(const std::string& key) { return at(key.c_str()); }
     inline mgjson operator [](const char* key) const { return at(key); }
     inline mgjson& operator [](const char* key) { return at(key); }
+    inline mgjson operator [](const std::string& key) const { return at(key.c_str()); }
+    inline mgjson& operator [](const std::string& key) { return at(key.c_str()); }
 
 #ifdef QT_CORE_LIB
     inline mgjson at(int index) const { return at(static_cast<size_t>(index)); }
@@ -257,9 +260,9 @@ public:
     inline mgjson operator [](const QString& key) const { return at(key.toUtf8().constData()); }
     inline mgjson& operator [](const QString& key) { return at(key.toUtf8().constData()); }
 
-    QList<QByteArray> keys() const;
+    QByteArrayList keys() const;
 #else
-    std::list<std::string> keys() const;
+    std::vector<std::string> keys() const;
 #endif
 
 public:

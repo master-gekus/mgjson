@@ -534,3 +534,33 @@ mgjson::at(const char* key)
     data->array_.clear();
     return data->map_[mgjson_private::Key(key)];
 }
+
+#ifdef QT_CORE_LIB
+QByteArrayList
+mgjson::keys() const
+{
+    const mgjson_private* data = d.data();
+    QByteArrayList res;
+    if (Object == data->type_) {
+        res.reserve(static_cast<int>(data->map_.size()));
+        for (const auto it : data->map_) {
+            res.push_back(it.first.d);
+        }
+    }
+    return res;
+}
+#else
+std::vector<std::string>
+mgjson::keys() const
+{
+    const mgjson_private* data = d.data();
+    std::vector<std::string> res;
+    if (Object == data->type_) {
+        res.reserve(data->map_.size());
+        for (const auto it : data->map_) {
+            res.push_back(it.first.d);
+        }
+    }
+    return res;
+}
+#endif

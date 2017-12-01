@@ -617,6 +617,44 @@ private slots:
             QCOMPARE(json.at("key").to<int>(), 1);
         }
     }
+
+    void Keys_data()
+    {
+        QTest::addColumn<QByteArrayList>("src");
+        QTest::addColumn<QByteArrayList>("dst");
+        QTest::newRow("Empty") << QByteArrayList{} << QByteArrayList{};
+        QTest::newRow("One key") << QByteArrayList{"Key"} << QByteArrayList{};
+        QTest::newRow("Two same") << QByteArrayList{"Key", "Key"} << QByteArrayList{};
+        QTest::newRow("Two straight") << QByteArrayList{"Key 0", "Key 1"} << QByteArrayList{"Key 0", "Key 1"};
+        QTest::newRow("Two reverse") << QByteArrayList{"Key 1", "Key 0"} << QByteArrayList{"Key 0", "Key 1"};
+        QTest::newRow("Three repeated 1") << QByteArrayList{"Key 0", "Key 1", "Key 0"} << QByteArrayList{"Key 0", "Key 1"};
+        QTest::newRow("Three repeated 2") << QByteArrayList{"Key 1", "Key 0", "Key 1"} << QByteArrayList{"Key 0", "Key 1"};
+        QTest::newRow("Many") << QByteArrayList{"Key 0", "Key 1", "Key 0", "Key 2", "Key 4", "Key 3", "Key 2"} << QByteArrayList{};
+    }
+
+    void Keys()
+    {
+        QFETCH(QByteArrayList, src);
+        QFETCH(QByteArrayList, dst);
+
+        if (dst.isEmpty() && (!src.isEmpty())) {
+            std::set<QByteArray> dst_set;
+            for (const auto& key : src) {
+                dst_set.insert(key);
+            }
+            for (const auto& key : dst_set) {
+                dst.push_back(key);
+            }
+        }
+
+        GJson json;
+        int value = 1;
+        for (const auto& key : src) {
+            json[key] = value++;
+        }
+
+        QCOMPARE(json.keys(), dst);
+    }
 };
 
 QTEST_APPLESS_MAIN(GJsonTest)
