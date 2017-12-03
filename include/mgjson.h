@@ -102,33 +102,34 @@ public:
 #endif
 
 private:
-    mgjson(mgjson_private *data);
+    mgjson(mgjson_private *data) noexcept;
 
 public:
-    mgjson(json_type type = Null);
-    mgjson(const mgjson &other);
-    mgjson(bool value);
-    mgjson(int value);
-    mgjson(unsigned int value);
-    mgjson(long value);
-    mgjson(unsigned long value);
-    mgjson(long long value);
-    mgjson(unsigned long long value);
-    mgjson(float value);
-    mgjson(double value);
-    mgjson(long double value);
-    mgjson(const char* value);
-    mgjson(const std::string& value);
-    mgjson &operator=(const mgjson& other);
+    mgjson(json_type type = Null) noexcept;
+    mgjson(const mgjson &other) noexcept;
+    mgjson(mgjson &&other) noexcept;
+    mgjson(bool value) noexcept;
+    mgjson(int value) noexcept;
+    mgjson(unsigned int value) noexcept;
+    mgjson(long value) noexcept;
+    mgjson(unsigned long value) noexcept;
+    mgjson(long long value) noexcept;
+    mgjson(unsigned long long value) noexcept;
+    mgjson(float value) noexcept;
+    mgjson(double value) noexcept;
+    mgjson(long double value) noexcept;
+    mgjson(const char* value) noexcept;
+    mgjson(const std::string& value) noexcept;
+    mgjson &operator=(const mgjson& other) noexcept;
 
 #ifdef QT_CORE_LIB
-    mgjson(const QString &value);
-    mgjson(const QByteArray &value);
-    mgjson(const QVariant &value);
+    mgjson(const QString &value) noexcept;
+    mgjson(const QByteArray &value) noexcept;
+    mgjson(const QVariant &value) noexcept;
 #endif
 
 public:
-    ~mgjson();
+    ~mgjson() noexcept;
 
 public:
     json_type type() const;
@@ -285,17 +286,17 @@ public:
     inline mgjson& append() {return push_back(mgjson());}
     inline mgjson& prepend() {return push_front(mgjson());}
 
-    inline void removeAt(int index) { mgjson::remove(static_cast<size_t>(index)); }
-    inline void removeAt(const char* key) { mgjson::remove(key); }
-    inline void removeAt(const std::string& key) { mgjson::remove(key.c_str()); }
-    inline void removeAt(const QByteArray& key) { mgjson::remove(key.constData()); }
-    inline void removeAt(const QString& key) { mgjson::remove(key.toUtf8().constData()); }
+    inline void removeAt(int index) { remove(static_cast<size_t>(index)); }
+    inline void removeAt(const char* key) { remove(key); }
+    inline void removeAt(const std::string& key) { remove(key.c_str()); }
+    inline void removeAt(const QByteArray& key) { remove(key.constData()); }
+    inline void removeAt(const QString& key) { remove(key.toUtf8().constData()); }
 
-    inline mgjson takeAt(int index) { return mgjson::take(static_cast<size_t>(index)); }
-    inline mgjson takeAt(const char* key) { return mgjson::take(key); }
-    inline mgjson takeAt(const std::string& key) { return mgjson::take(key.c_str()); }
-    inline mgjson takeAt(const QByteArray& key) { return mgjson::take(key.constData()); }
-    inline mgjson takeAt(const QString& key) { return mgjson::take(key.toUtf8().constData()); }
+    inline mgjson takeAt(int index) { return take(static_cast<size_t>(index)); }
+    inline mgjson takeAt(const char* key) { return take(key); }
+    inline mgjson takeAt(const std::string& key) { return take(key.c_str()); }
+    inline mgjson takeAt(const QByteArray& key) { return take(key.constData()); }
+    inline mgjson takeAt(const QString& key) { return take(key.toUtf8().constData()); }
 #endif
 
 public:
@@ -324,6 +325,9 @@ private:
 };
 
 _mgjson_declare_operators_for_flags(mgjson::json_format)
+
+static_assert(sizeof(mgjson) == sizeof(void*),
+              "mgjason class MUST have size as a pointer!");
 
 #ifdef QT_CORE_LIB
 struct GJsonParseError : public mgjson::parse_result
@@ -395,6 +399,7 @@ inline const QByteArray& mgjson::to<const QByteArray&>() const
   return toByteArray();
 }
 
+Q_DECLARE_TYPEINFO(mgjson, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(mgjson)
 
 #else  // QT_CORE_LIB

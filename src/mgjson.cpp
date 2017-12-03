@@ -277,21 +277,26 @@ public:
     std::map<Key,mgjson> map_;
 };
 
-mgjson::~mgjson()
+mgjson::~mgjson() noexcept
 {
 }
 
-mgjson::mgjson(mgjson_private *data) :
+mgjson::mgjson(mgjson_private *data) noexcept :
     d(data)
 {
 }
 
-mgjson::mgjson(const mgjson& other) :
+mgjson::mgjson(const mgjson& other) noexcept :
     d(other.d)
 {
 }
 
-mgjson &mgjson::operator=(const mgjson& other)
+mgjson::mgjson(mgjson &&other) noexcept :
+    d(other.d)
+{
+}
+
+mgjson &mgjson::operator=(const mgjson& other) noexcept
 {
   if( this != &other ) {
     d.operator=(other.d);
@@ -299,67 +304,67 @@ mgjson &mgjson::operator=(const mgjson& other)
   return *this;
 }
 
-mgjson::mgjson(json_type type) :
+mgjson::mgjson(json_type type) noexcept :
     d(new mgjson_private(type))
 {
 }
 
-mgjson::mgjson(bool value) :
+mgjson::mgjson(bool value) noexcept :
     d(new mgjson_private(value))
 {
 }
 
-mgjson::mgjson(int value) :
+mgjson::mgjson(int value) noexcept :
     d(new mgjson_private(static_cast<unsigned long long>(value)))
 {
 }
 
-mgjson::mgjson(unsigned int value) :
+mgjson::mgjson(unsigned int value) noexcept :
     d(new mgjson_private(static_cast<unsigned long long>(value)))
 {
 }
 
-mgjson::mgjson(long value) :
+mgjson::mgjson(long value) noexcept :
     d(new mgjson_private(static_cast<unsigned long long>(value)))
 {
 }
 
-mgjson::mgjson(unsigned long value) :
+mgjson::mgjson(unsigned long value) noexcept :
     d(new mgjson_private(static_cast<unsigned long long>(value)))
 {
 }
 
-mgjson::mgjson(long long value) :
+mgjson::mgjson(long long value) noexcept :
     d(new mgjson_private(static_cast<unsigned long long>(value)))
 {
 }
 
-mgjson::mgjson(unsigned long long value) :
+mgjson::mgjson(unsigned long long value) noexcept :
     d(new mgjson_private(value))
 {
 }
 
-mgjson::mgjson(float value) :
+mgjson::mgjson(float value) noexcept :
     d(new mgjson_private(static_cast<long double>(value)))
 {
 }
 
-mgjson::mgjson(double value) :
+mgjson::mgjson(double value) noexcept :
     d(new mgjson_private(static_cast<long double>(value)))
 {
 }
 
-mgjson::mgjson(long double value) :
+mgjson::mgjson(long double value) noexcept :
     d(new mgjson_private(value))
 {
 }
 
-mgjson::mgjson(const char* value) :
+mgjson::mgjson(const char* value) noexcept :
     d(new mgjson_private(value))
 {
 }
 
-mgjson::mgjson(const std::string& value) :
+mgjson::mgjson(const std::string& value) noexcept :
 #ifdef QT_CORE_LIB
     d(new mgjson_private(QByteArray::fromStdString(value)))
 #else
@@ -369,12 +374,12 @@ mgjson::mgjson(const std::string& value) :
 }
 
 #ifdef QT_CORE_LIB
-mgjson::mgjson(const QByteArray& value) :
+mgjson::mgjson(const QByteArray& value) noexcept :
     d(new mgjson_private(value))
 {
 }
 
-mgjson::mgjson(const QString& value) :
+mgjson::mgjson(const QString& value) noexcept :
     d(new mgjson_private(value.toUtf8()))
 {
 }
@@ -592,4 +597,15 @@ mgjson::push_front(const mgjson& value)
     }
 
     return *(data->array_.insert(data->array_.begin(), value));
+}
+
+void
+mgjson::remove(size_t index)
+{
+    mgjson_private* data = d.data();
+    if ((Array != data->type_) || (data->array_.size() <= index)) {
+        return;
+    }
+
+    data->array_.erase(data->array_.begin() + index);
 }

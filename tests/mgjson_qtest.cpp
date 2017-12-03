@@ -765,6 +765,60 @@ private slots:
             QCOMPARE(json[0].to<int>(), 1);
         }
     }
+
+    void ArrayRemoveAt()
+    {
+        GJson json;
+        QVERIFY(json.isNull());
+
+        QVERIFY(json.append(1).isInteger());
+        QVERIFY(json.append(2).isInteger());
+        QVERIFY(json.append("String 1").isString());
+        QVERIFY(json.append("String 2").isString());
+        QVERIFY(json.append(1.1).isDouble());
+        QVERIFY(json.append(2.2).isDouble());
+        QCOMPARE(json.count(), 6);
+
+        json.removeAt(2);
+        QCOMPARE(json.count(), 5);
+        QVERIFY(json[0].isInteger());
+        QCOMPARE(json[0].to<int>(), 1);
+        QVERIFY(json[1].isInteger());
+        QCOMPARE(json[1].to<int>(), 2);
+        QVERIFY(json[2].isString());
+        QCOMPARE(json[2].to<const char*>(), "String 2");
+        QVERIFY(json[3].isDouble());
+        QCOMPARE(json[3].to<double>(), 1.1);
+        QVERIFY(json[4].isDouble());
+        QCOMPARE(json[4].to<double>(), 2.2);
+
+        json.removeAt(3);
+        QCOMPARE(json.count(), 4);
+        QVERIFY(json[0].isInteger());
+        QCOMPARE(json[0].to<int>(), 1);
+        QVERIFY(json[1].isInteger());
+        QCOMPARE(json[1].to<int>(), 2);
+        QVERIFY(json[2].isString());
+        QCOMPARE(json[2].to<const char*>(), "String 2");
+        QVERIFY(json[3].isDouble());
+        QCOMPARE(json[3].to<double>(), 2.2);
+
+        json.removeAt(1);
+        QCOMPARE(json.count(), 3);
+        QVERIFY(json[0].isInteger());
+        QCOMPARE(json[0].to<int>(), 1);
+        QVERIFY(json[1].isString());
+        QCOMPARE(json[1].to<const char*>(), "String 2");
+        QVERIFY(json[2].isDouble());
+        QCOMPARE(json[2].to<double>(), 2.2);
+
+        json.removeAt(2);
+        QCOMPARE(json.count(), 2);
+        json.removeAt(1);
+        QCOMPARE(json.count(), 1);
+        json.removeAt(0);
+        QCOMPARE(json.count(), 0);
+    }
 };
 
 QTEST_APPLESS_MAIN(GJsonTest)
