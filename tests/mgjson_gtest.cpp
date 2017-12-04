@@ -683,7 +683,7 @@ TEST_P(PushFront, Exceptions)
     }
 }
 
-TEST(Remove, Remove)
+TEST(Remove, Array)
 {
     mgjson json;
     EXPECT_TRUE(json.is_null());
@@ -735,5 +735,94 @@ TEST(Remove, Remove)
     EXPECT_EQ(json.count(), 1U);
     json.remove(static_cast<size_t>(0));
     EXPECT_EQ(json.count(), 0U);
+}
+
+TEST(Remove, Object)
+{
+    static constexpr const char* keys[] = {
+        "Key 1", "Key 2", "Key 3", "Key 4", "Key 5", "Key 6"
+    };
+
+    mgjson json;
+    const mgjson& cjson = json;
+    EXPECT_TRUE(json.is_null());
+
+    json[keys[5]] = 2.2;
+    json[keys[4]] = 1.1;
+    json[keys[0]] = 1;
+    json[keys[1]] = 2;
+    json[keys[2]] = "String 1";
+    json[keys[3]] = "String 2";
+    EXPECT_EQ(json.count(), 6U);
+
+    json.remove(keys[2]);
+    EXPECT_EQ(cjson.count(), 5U);
+    EXPECT_TRUE(cjson[keys[0]].is_integer());
+    EXPECT_EQ(cjson[keys[0]].to<int>(), 1);
+    EXPECT_TRUE(cjson[keys[1]].is_integer());
+    EXPECT_EQ(cjson[keys[1]].to<int>(), 2);
+    EXPECT_TRUE(cjson[keys[2]].is_null());
+    EXPECT_TRUE(cjson[keys[3]].is_string());
+    EXPECT_STREQ(cjson[keys[3]].to<const char*>(), "String 2");
+    EXPECT_TRUE(cjson[keys[4]].is_double());
+    EXPECT_EQ(cjson[keys[4]].to<double>(), 1.1);
+    EXPECT_TRUE(cjson[keys[5]].is_double());
+    EXPECT_EQ(cjson[keys[5]].to<double>(), 2.2);
+
+    json.remove(keys[4]);
+    EXPECT_EQ(cjson.count(), 4U);
+    EXPECT_TRUE(cjson[keys[0]].is_integer());
+    EXPECT_EQ(cjson[keys[0]].to<int>(), 1);
+    EXPECT_TRUE(cjson[keys[1]].is_integer());
+    EXPECT_EQ(cjson[keys[1]].to<int>(), 2);
+    EXPECT_TRUE(cjson[keys[2]].is_null());
+    EXPECT_TRUE(cjson[keys[3]].is_string());
+    EXPECT_STREQ(cjson[keys[3]].to<const char*>(), "String 2");
+    EXPECT_TRUE(cjson[keys[4]].is_null());
+    EXPECT_TRUE(cjson[keys[5]].is_double());
+    EXPECT_EQ(cjson[keys[5]].to<double>(), 2.2);
+
+    json.remove(keys[1]);
+    EXPECT_EQ(cjson.count(), 3U);
+    EXPECT_TRUE(cjson[keys[0]].is_integer());
+    EXPECT_EQ(cjson[keys[0]].to<int>(), 1);
+    EXPECT_TRUE(cjson[keys[1]].is_null());
+    EXPECT_TRUE(cjson[keys[2]].is_null());
+    EXPECT_TRUE(cjson[keys[3]].is_string());
+    EXPECT_STREQ(cjson[keys[3]].to<const char*>(), "String 2");
+    EXPECT_TRUE(cjson[keys[4]].is_null());
+    EXPECT_TRUE(cjson[keys[5]].is_double());
+    EXPECT_EQ(cjson[keys[5]].to<double>(), 2.2);
+
+    json.remove(keys[4]);
+    EXPECT_EQ(cjson.count(), 3U);
+    EXPECT_TRUE(cjson[keys[0]].is_integer());
+    EXPECT_EQ(cjson[keys[0]].to<int>(), 1);
+    EXPECT_TRUE(cjson[keys[1]].is_null());
+    EXPECT_TRUE(cjson[keys[2]].is_null());
+    EXPECT_TRUE(cjson[keys[3]].is_string());
+    EXPECT_STREQ(cjson[keys[3]].to<const char*>(), "String 2");
+    EXPECT_TRUE(cjson[keys[4]].is_null());
+    EXPECT_TRUE(cjson[keys[5]].is_double());
+    EXPECT_EQ(cjson[keys[5]].to<double>(), 2.2);
+
+    json.remove("Nonexistent key");
+    EXPECT_EQ(cjson.count(), 3U);
+    EXPECT_TRUE(cjson[keys[0]].is_integer());
+    EXPECT_EQ(cjson[keys[0]].to<int>(), 1);
+    EXPECT_TRUE(cjson[keys[1]].is_null());
+    EXPECT_TRUE(cjson[keys[2]].is_null());
+    EXPECT_TRUE(cjson[keys[3]].is_string());
+    EXPECT_STREQ(cjson[keys[3]].to<const char*>(), "String 2");
+    EXPECT_TRUE(cjson[keys[4]].is_null());
+    EXPECT_TRUE(cjson[keys[5]].is_double());
+    EXPECT_EQ(cjson[keys[5]].to<double>(), 2.2);
+
+    json.remove(keys[0]);
+    EXPECT_EQ(cjson.count(), 2U);
+    json.remove(keys[5]);
+    EXPECT_EQ(cjson.count(), 1U);
+    json.remove(keys[3]);
+    EXPECT_EQ(cjson.count(), 0U);
 }
 

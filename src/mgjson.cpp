@@ -519,7 +519,7 @@ mgjson::at(const char* key) const
         return mgjson();
     }
 
-    auto it = data->map_.find(*((const mgjson_private::Key*)(&key)));
+    auto it = data->map_.find(*reinterpret_cast<const mgjson_private::Key*>(&key));
     if (data->map_.end() == it) {
         return mgjson();
     }
@@ -607,5 +607,17 @@ mgjson::remove(size_t index)
         return;
     }
 
+    /// \todo Maybe, it makes sens to change erase to memmove
+    /// to prevent construction/destruction calls
     data->array_.erase(data->array_.begin() + index);
+}
+
+void
+mgjson::remove(const char* key)
+{
+    mgjson_private* data = d.data();
+    if (Object != data->type_) {
+        return;
+    }
+    data->map_.erase(*reinterpret_cast<const mgjson_private::Key*>(&key));
 }
