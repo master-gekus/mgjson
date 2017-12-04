@@ -1071,6 +1071,32 @@ private slots:
         QCOMPARE(json1.to<const char*>(), "String 2");
         QCOMPARE(cjson.count(), 0);
     }
+
+    void HasKey()
+    {
+        GJson json;
+        json["Key 1"] = 1;
+        json["Key 2"] = "Test string";
+
+        QVERIFY(json.hasKey(QByteArrayLiteral("Key 1")));
+        QVERIFY(json.hasKey(QByteArrayLiteral("Key 2")));
+        QVERIFY(json.hasKey(QStringLiteral("Key 1")));
+        QVERIFY(json.hasKey(QStringLiteral("Key 2")));
+        QVERIFY(!json.hasKey(QByteArrayLiteral("Nonexistent key")));
+        QVERIFY(!json.hasKey(QStringLiteral("Nonexistent key")));
+
+        QVERIFY_EXCEPTION_THROWN(json.hasKey(nullptr), std::out_of_range);
+        QVERIFY_EXCEPTION_THROWN(json.hasKey(""), std::out_of_range);
+
+        QVERIFY(!GJson{GJson::Null}.hasKey("key"));
+        QVERIFY(!GJson{GJson::Bool}.hasKey("key"));
+        QVERIFY(!GJson{GJson::Integer}.hasKey("key"));
+        QVERIFY(!GJson{GJson::Double}.hasKey("key"));
+        QVERIFY(!GJson{GJson::String}.hasKey("key"));
+        QVERIFY(!GJson{GJson::Array}.hasKey("key"));
+        QVERIFY(!GJson{GJson::Object}.hasKey("key"));
+        QVERIFY(!GJson{GJson::Undefined}.hasKey("key"));
+    }
 };
 
 QTEST_APPLESS_MAIN(GJsonTest)

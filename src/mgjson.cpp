@@ -526,6 +526,20 @@ mgjson::at(const char* key) const
     return it->second;
 }
 
+bool
+mgjson::has_key(const char* key) const
+{
+    const mgjson_private* data = d.data();
+
+    data->check_key_is_empty(key);
+
+    if (Object != data->type_) {
+        return false;
+    }
+
+    return (data->map_.find(*reinterpret_cast<const mgjson_private::Key*>(&key)) != data->map_.end());
+}
+
 mgjson&
 mgjson::at(const char* key)
 {

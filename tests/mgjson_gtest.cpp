@@ -994,3 +994,29 @@ TEST(Take, Object)
     EXPECT_STREQ(json1.to<const char*>(), "String 2");
     EXPECT_EQ(cjson.count(), 0U);
 }
+
+TEST(HasKey, HasKey)
+{
+    mgjson json;
+    json["Key 1"] = 1;
+    json["Key 2"] = "Test string";
+
+    EXPECT_TRUE(json.has_key("Key 1"));
+    EXPECT_TRUE(json.has_key("Key 2"));
+    EXPECT_TRUE(json.has_key(std::string("Key 1")));
+    EXPECT_TRUE(json.has_key(std::string("Key 2")));
+    EXPECT_FALSE(json.has_key("Nonexistent key"));
+    EXPECT_FALSE(json.has_key(std::string("Nonexistent key")));
+
+    EXPECT_THROW(json.has_key(nullptr), std::out_of_range);
+    EXPECT_THROW(json.has_key(""), std::out_of_range);
+
+    EXPECT_FALSE(mgjson{mgjson::Null}.has_key("key"));
+    EXPECT_FALSE(mgjson{mgjson::Bool}.has_key("key"));
+    EXPECT_FALSE(mgjson{mgjson::Integer}.has_key("key"));
+    EXPECT_FALSE(mgjson{mgjson::Double}.has_key("key"));
+    EXPECT_FALSE(mgjson{mgjson::String}.has_key("key"));
+    EXPECT_FALSE(mgjson{mgjson::Array}.has_key("key"));
+    EXPECT_FALSE(mgjson{mgjson::Object}.has_key("key"));
+    EXPECT_FALSE(mgjson{mgjson::Undefined}.has_key("key"));
+}

@@ -245,6 +245,9 @@ public:
     inline mgjson operator [](const std::string& key) const { return at(key.c_str()); }
     inline mgjson& operator [](const std::string& key) { return at(key.c_str()); }
 
+    bool has_key(const char* key) const;
+    inline bool has_key(const std::string& key) const { return has_key(key.c_str()); }
+
 #ifdef QT_CORE_LIB
     inline mgjson at(int index) const { return at(static_cast<size_t>(index)); }
     inline mgjson& at(int index) { return at(static_cast<size_t>(index)); }
@@ -260,6 +263,11 @@ public:
     inline mgjson& at(const QString& key) { return at(key.toUtf8().constData()); }
     inline mgjson operator [](const QString& key) const { return at(key.toUtf8().constData()); }
     inline mgjson& operator [](const QString& key) { return at(key.toUtf8().constData()); }
+
+    inline bool hasKey(const char* key) const { return has_key(key); }
+    inline bool hasKey(const std::string& key) const { return has_key(key.c_str()); }
+    inline bool hasKey(const QByteArray& key) const { return has_key(key.constData()); }
+    inline bool hasKey(const QString& key) const { return has_key(key.toUtf8().constData()); }
 
     QByteArrayList keys() const;
 #else
