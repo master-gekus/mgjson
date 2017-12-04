@@ -822,7 +822,7 @@ private slots:
 
     void ObjectRemoveAt()
     {
-        static constexpr const char* keys[] = {
+        static const QByteArray keys[] = {
             "Key 1", "Key 2", "Key 3", "Key 4", "Key 5", "Key 6"
         };
 
@@ -906,6 +906,169 @@ private slots:
         json.removeAt(keys[5]);
         QCOMPARE(cjson.count(), 1);
         json.removeAt(keys[3]);
+        QCOMPARE(cjson.count(), 0);
+    }
+
+    void ArrayTakeAt()
+    {
+        GJson json, json1;
+        QVERIFY(json.isNull());
+
+        QVERIFY(json.append(1).isInteger());
+        QVERIFY(json.append(2).isInteger());
+        QVERIFY(json.append("String 1").isString());
+        QVERIFY(json.append("String 2").isString());
+        QVERIFY(json.append(1.1).isDouble());
+        QVERIFY(json.append(2.2).isDouble());
+        QCOMPARE(json.count(), 6);
+
+        json1 = json.takeAt(2);
+        QVERIFY(json1.isString());
+        QCOMPARE(json1.to<const char*>(), "String 1");
+        QCOMPARE(json.count(), 5);
+        QVERIFY(json[0].isInteger());
+        QCOMPARE(json[0].to<int>(), 1);
+        QVERIFY(json[1].isInteger());
+        QCOMPARE(json[1].to<int>(), 2);
+        QVERIFY(json[2].isString());
+        QCOMPARE(json[2].to<const char*>(), "String 2");
+        QVERIFY(json[3].isDouble());
+        QCOMPARE(json[3].to<double>(), 1.1);
+        QVERIFY(json[4].isDouble());
+        QCOMPARE(json[4].to<double>(), 2.2);
+
+        json1 = json.takeAt(3);
+        QVERIFY(json1.isDouble());
+        QCOMPARE(json1.to<double>(), 1.1);
+        QCOMPARE(json.count(), 4);
+        QVERIFY(json[0].isInteger());
+        QCOMPARE(json[0].to<int>(), 1);
+        QVERIFY(json[1].isInteger());
+        QCOMPARE(json[1].to<int>(), 2);
+        QVERIFY(json[2].isString());
+        QCOMPARE(json[2].to<const char*>(), "String 2");
+        QVERIFY(json[3].isDouble());
+        QCOMPARE(json[3].to<double>(), 2.2);
+
+        json1 = json.takeAt(1);
+        QVERIFY(json1.isInteger());
+        QCOMPARE(json1.to<int>(), 2);
+        QCOMPARE(json.count(), 3);
+        QVERIFY(json[0].isInteger());
+        QCOMPARE(json[0].to<int>(), 1);
+        QVERIFY(json[1].isString());
+        QCOMPARE(json[1].to<const char*>(), "String 2");
+        QVERIFY(json[2].isDouble());
+        QCOMPARE(json[2].to<double>(), 2.2);
+
+        json1 = json.takeAt(2);
+        QCOMPARE(json.count(), 2);
+        json1 = json.takeAt(1);
+        QCOMPARE(json.count(), 1);
+        json1 = json.takeAt(0);
+        QCOMPARE(json.count(), 0);
+    }
+
+    void ObjectTakeAt()
+    {
+        static QString keys[] = {
+            "Key 1", "Key 2", "Key 3", "Key 4", "Key 5", "Key 6"
+        };
+
+        GJson json, json1;
+        const GJson& cjson = json;
+        QVERIFY(json.isNull());
+
+        json[keys[5]] = 2.2;
+        json[keys[4]] = 1.1;
+        json[keys[0]] = 1;
+        json[keys[1]] = 2;
+        json[keys[2]] = "String 1";
+        json[keys[3]] = "String 2";
+        QCOMPARE(json.count(), 6);
+
+        json1 = json.takeAt(keys[2]);
+        QVERIFY(json1.isString());
+        QCOMPARE(json1.to<const char*>(), "String 1");
+        QCOMPARE(cjson.count(), 5);
+        QVERIFY(cjson[keys[0]].isInteger());
+        QCOMPARE(cjson[keys[0]].to<int>(), 1);
+        QVERIFY(cjson[keys[1]].isInteger());
+        QCOMPARE(cjson[keys[1]].to<int>(), 2);
+        QVERIFY(cjson[keys[2]].isNull());
+        QVERIFY(cjson[keys[3]].isString());
+        QCOMPARE(cjson[keys[3]].to<const char*>(), "String 2");
+        QVERIFY(cjson[keys[4]].isDouble());
+        QCOMPARE(cjson[keys[4]].to<double>(), 1.1);
+        QVERIFY(cjson[keys[5]].isDouble());
+        QCOMPARE(cjson[keys[5]].to<double>(), 2.2);
+
+        json1 = json.takeAt(keys[4]);
+        QVERIFY(json1.isDouble());
+        QCOMPARE(json1.to<double>(), 1.1);
+        QCOMPARE(cjson.count(), 4);
+        QVERIFY(cjson[keys[0]].isInteger());
+        QCOMPARE(cjson[keys[0]].to<int>(), 1);
+        QVERIFY(cjson[keys[1]].isInteger());
+        QCOMPARE(cjson[keys[1]].to<int>(), 2);
+        QVERIFY(cjson[keys[2]].isNull());
+        QVERIFY(cjson[keys[3]].isString());
+        QCOMPARE(cjson[keys[3]].to<const char*>(), "String 2");
+        QVERIFY(cjson[keys[4]].isNull());
+        QVERIFY(cjson[keys[5]].isDouble());
+        QCOMPARE(cjson[keys[5]].to<double>(), 2.2);
+
+        json1 = json.takeAt(keys[1]);
+        QVERIFY(json1.isInteger());
+        QCOMPARE(json1.to<int>(), 2);
+        QCOMPARE(cjson.count(), 3);
+        QVERIFY(cjson[keys[0]].isInteger());
+        QCOMPARE(cjson[keys[0]].to<int>(), 1);
+        QVERIFY(cjson[keys[1]].isNull());
+        QVERIFY(cjson[keys[2]].isNull());
+        QVERIFY(cjson[keys[3]].isString());
+        QCOMPARE(cjson[keys[3]].to<const char*>(), "String 2");
+        QVERIFY(cjson[keys[4]].isNull());
+        QVERIFY(cjson[keys[5]].isDouble());
+        QCOMPARE(cjson[keys[5]].to<double>(), 2.2);
+
+        json1 = json.takeAt(keys[4]);
+        QVERIFY(json1.isNull());
+        QCOMPARE(cjson.count(), 3);
+        QVERIFY(cjson[keys[0]].isInteger());
+        QCOMPARE(cjson[keys[0]].to<int>(), 1);
+        QVERIFY(cjson[keys[1]].isNull());
+        QVERIFY(cjson[keys[2]].isNull());
+        QVERIFY(cjson[keys[3]].isString());
+        QCOMPARE(cjson[keys[3]].to<const char*>(), "String 2");
+        QVERIFY(cjson[keys[4]].isNull());
+        QVERIFY(cjson[keys[5]].isDouble());
+        QCOMPARE(cjson[keys[5]].to<double>(), 2.2);
+
+        json1 = json.takeAt("Nonexistent key");
+        QVERIFY(json1.isNull());
+        QCOMPARE(cjson.count(), 3);
+        QVERIFY(cjson[keys[0]].isInteger());
+        QCOMPARE(cjson[keys[0]].to<int>(), 1);
+        QVERIFY(cjson[keys[1]].isNull());
+        QVERIFY(cjson[keys[2]].isNull());
+        QVERIFY(cjson[keys[3]].isString());
+        QCOMPARE(cjson[keys[3]].to<const char*>(), "String 2");
+        QVERIFY(cjson[keys[4]].isNull());
+        QVERIFY(cjson[keys[5]].isDouble());
+        QCOMPARE(cjson[keys[5]].to<double>(), 2.2);
+
+        json1 = json.takeAt(keys[0]);
+        QVERIFY(json1.isInteger());
+        QCOMPARE(json1.to<int>(), 1);
+        QCOMPARE(cjson.count(), 2);
+        json1 = json.takeAt(keys[5]);
+        QVERIFY(json1.isDouble());
+        QCOMPARE(json1.to<double>(), 2.2);
+        QCOMPARE(cjson.count(), 1);
+        json1 = json.takeAt(keys[3]);
+        QVERIFY(json1.isString());
+        QCOMPARE(json1.to<const char*>(), "String 2");
         QCOMPARE(cjson.count(), 0);
     }
 };
